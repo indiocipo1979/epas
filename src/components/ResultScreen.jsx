@@ -1,13 +1,17 @@
 // ─── ResultScreen.jsx ───
 // Pantalla final: "Diploma de Guardián del Agua"
-// Muestra el puntaje, un mensaje motivador y el botón para reiniciar.
+// Muestra el puntaje, un mensaje motivador y el botón para descargar PDF y reiniciar.
 
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import FloatingCharacter from './FloatingCharacter';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import logoEpas from '../assets/logo-epas.png';
 import logoNeuquen from '../assets/logo-neuquen.png';
 
 export default function ResultScreen({ nombre, correctas, total, onReiniciar }) {
+  const diplomaRef = useRef();
+
   // ── Calculamos el porcentaje de aciertos ──
   const porcentaje = Math.round((correctas / total) * 100);
 
@@ -29,29 +33,76 @@ export default function ResultScreen({ nombre, correctas, total, onReiniciar }) 
     return "from-blue-400 via-indigo-500 to-purple-600";
   };
 
+  // ── Lógica para descargar PDF ──
+  const handleDownloadPDF = async () => {
+    const element = diplomaRef.current;
+    
+    // Crear un contenedor temporal para el renderizado A4
+    const printContainer = document.createElement('div');
+    printContainer.style.position = 'absolute';
+    printContainer.style.left = '-9999px';
+    printContainer.style.top = '0';
+    printContainer.style.width = '1123px'; // A4 Apaisado px approx
+    printContainer.style.height = '794px';
+    document.body.appendChild(printContainer);
+
+    // Clonar el diploma y ajustarlo al tamaño A4
+    const clone = element.cloneNode(true);
+    clone.style.width = '1123px';
+    clone.style.height = '794px';
+    clone.style.maxWidth = 'none';
+    clone.style.borderRadius = '0';
+    clone.style.border = '20px solid rgba(255,255,255,0.4)';
+    printContainer.appendChild(clone);
+
+    try {
+      const canvas = await html2canvas(clone, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [1123, 794]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794);
+      pdf.save(`Diploma_EPAS_${nombre.replace(/\s+/g, '_')}.pdf`);
+    } catch (error) {
+      console.error("Error generando PDF:", error);
+      alert("Hubo un error al generar el PDF. Por favor intentá de nuevo.");
+    } finally {
+      document.body.removeChild(printContainer);
+    }
+  };
+
   return (
     <motion.div
-      className="fixed inset-0 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 flex flex-col items-center justify-center p-4 z-50 bg-black/60 backdrop-blur-md overflow-y-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* ── Diploma principal ── */}
-      <motion.div
+      {/* ── Contenedor del Diploma (Vista en pantalla) ── */}
+      <motion.div 
+        ref={diplomaRef}
         className={`
           relative w-full max-w-2xl rounded-3xl overflow-hidden
           bg-gradient-to-br ${getColor()}
-          shadow-2xl border-4 border-white/30
+          shadow-2xl border-4 border-white/30 p-8 text-center
         `}
-        initial={{ scale: 0.5, rotate: -5 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+        initial={{ scale: 0.8, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 200 }}
       >
         {/* Decoración de fondo */}
-        <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
           {['💧', '🌊', '💦', '🐟', '🌿', '⭐'].map((e, i) => (
             <span
               key={i}
-              className="absolute text-6xl"
+              className="absolute text-7xl"
               style={{
                 left: `${(i * 18) % 90}%`,
                 top: `${(i * 25) % 80}%`,
@@ -61,104 +112,69 @@ export default function ResultScreen({ nombre, correctas, total, onReiniciar }) 
           ))}
         </div>
 
-        <div className="relative z-10 p-8 text-center">
-          {/* ── Encabezado del diploma ── */}
-          <div className="flex justify-between items-center mb-6 px-2">
-            <img src={logoEpas} alt="EPAS" style={{ height: '30px' }} />
-            <img src={logoNeuquen} alt="Neuquén" style={{ height: '48px' }} />
+        <div className="relative z-10">
+          {/* Logos */}
+          <div className="flex justify-between items-center mb-6">
+            <img src={logoEpas} alt="EPAS" className="h-8 md:h-10 object-contain" />
+            <img src={logoNeuquen} alt="Neuquén" className="h-12 md:h-14 object-contain" />
           </div>
 
-          <motion.div
-            className="bg-white/20 rounded-2xl px-6 py-2 inline-block mb-4 border border-white/40"
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <p className="text-white/90 font-bold text-sm tracking-widest uppercase">
-              🎓 Diploma Oficial · Guardianes del Agua
+          <div className="bg-white/20 rounded-full px-6 py-2 inline-block mb-4 border border-white/40">
+            <p className="text-white font-black text-xs tracking-widest uppercase">
+              🎓 Diploma de Guardián del Agua
             </p>
-          </motion.div>
+          </div>
 
-          {/* ── Nombre del Jugador ── */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mb-2"
-          >
-            <p className="text-white/70 text-xs font-black uppercase tracking-tighter mb-1">Este diploma se otorga a:</p>
-            <h2 className="text-4xl md:text-5xl font-black text-white drop-shadow-md italic underline decoration-yellow-400 underline-offset-8">
-              {nombre}
-            </h2>
-          </motion.div>
+          <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-1 italic">
+            Certificamos con orgullo que:
+          </p>
 
-          {/* ── Título del diploma ── */}
-          <motion.h1
-            className="text-2xl md:text-3xl font-black text-white drop-shadow-lg mt-8 mb-2"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.4, type: "spring" }}
-          >
+          <h2 className="text-4xl md:text-5xl font-black text-white drop-shadow-2xl italic mb-4 border-b-4 border-yellow-400 inline-block px-4 pb-1">
+            {nombre}
+          </h2>
+
+          <h1 className="text-2xl md:text-3xl font-black text-white drop-shadow-lg mb-3">
             {titulo}
-          </motion.h1>
+          </h1>
 
-          {/* ── Subtítulo ── */}
-          <motion.p
-            className="text-white/90 font-semibold text-base mb-6 leading-relaxed"
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
+          <p className="text-white/90 font-bold text-base mb-6 max-w-md mx-auto leading-tight">
             {sub}
-          </motion.p>
+          </p>
 
-          {/* ── Puntaje circular ── */}
-          <motion.div
-            className="flex items-center justify-center gap-6 mb-8"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            {/* Aciertos */}
-            <div className="bg-white/25 rounded-2xl px-6 py-3 border border-white/40 text-center">
-              <p className="text-4xl font-black text-white">{correctas}/{total}</p>
-              <p className="text-white/80 text-sm font-bold">Respuestas</p>
+          {/* Stats en el diploma */}
+          <div className="flex justify-center gap-4 mb-2">
+            <div className="bg-black/10 rounded-xl px-4 py-2 border border-white/20">
+              <p className="text-white/70 text-[10px] font-bold uppercase">Aciertos</p>
+              <p className="text-white text-xl font-black">{correctas}/{total}</p>
             </div>
-
-            {/* Porcentaje grande */}
-            <div className="bg-white/25 rounded-2xl px-6 py-3 border border-white/40 text-center">
-              <p className="text-4xl font-black text-white">{porcentaje}%</p>
-              <p className="text-white/80 text-sm font-bold">Aciertos</p>
+            <div className="bg-black/10 rounded-xl px-4 py-2 border border-white/20">
+              <p className="text-white/70 text-[10px] font-bold uppercase">Calificación</p>
+              <p className="text-white text-xl font-black">{porcentaje}%</p>
             </div>
-
-            {/* Estrellas */}
-            <div className="bg-white/25 rounded-2xl px-6 py-3 border border-white/40 text-center">
-              <p className="text-3xl">
-                {porcentaje >= 80 ? "⭐⭐⭐" : porcentaje >= 50 ? "⭐⭐" : "⭐"}
-              </p>
-              <p className="text-white/80 text-sm font-bold">Estrellas</p>
-            </div>
-          </motion.div>
-
-          {/* ── Botón de reinicio ── */}
-          <motion.button
-            onClick={onReiniciar}
-            className="
-              w-full py-5 rounded-2xl font-black text-2xl
-              bg-white shadow-xl border-2 border-white/50
-              flex items-center justify-center gap-3
-            "
-            style={{ color: porcentaje >= 70 ? '#0d47a1' : '#7b1fa2' }}
-            whileHover={{ scale: 1.04, boxShadow: "0 0 30px rgba(255,255,255,0.6)" }}
-            whileTap={{ scale: 0.96 }}
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.6, type: "spring" }}
-          >
-            🔄 Reiniciar Misión
-          </motion.button>
+          </div>
         </div>
       </motion.div>
+
+      {/* ── Botones de Acción (Fuera del diploma) ── */}
+      <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full max-w-md">
+        <motion.button
+          onClick={handleDownloadPDF}
+          className="flex-1 bg-green-500 hover:bg-green-600 text-white font-black py-4 px-6 rounded-2xl shadow-xl flex items-center justify-center gap-2 text-lg transition-colors border-b-4 border-green-700"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          🎓 Descargar Diploma (PDF)
+        </motion.button>
+
+        <motion.button
+          onClick={onReiniciar}
+          className="flex-1 bg-white hover:bg-gray-100 text-epas-sky font-black py-4 px-6 rounded-2xl shadow-xl text-lg transition-colors border-b-4 border-gray-300"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          🔄 Jugar de nuevo
+        </motion.button>
+      </div>
     </motion.div>
   );
 }
