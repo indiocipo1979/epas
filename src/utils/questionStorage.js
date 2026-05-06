@@ -135,3 +135,29 @@ export async function resetPreguntas() {
   localStorage.removeItem(LOCAL_STORAGE_KEY);
   return PREGUNTAS_DEFAULT;
 }
+// ── Obtener estadísticas de participaciones ──
+export async function getEstadisticas() {
+  if (!supabase) return { total: 0, promedio: 0, recientes: [] };
+
+  try {
+    const { data, error } = await supabase
+      .from('participaciones')
+      .select('*')
+      .order('fecha', { ascending: false });
+
+    if (error) throw error;
+
+    const total = data.length;
+    const sumaPuntajes = data.reduce((acc, p) => acc + (p.puntaje / p.total), 0);
+    const promedio = total > 0 ? Math.round((sumaPuntajes / total) * 100) : 0;
+
+    return {
+      total,
+      promedio,
+      recientes: data.slice(0, 50) // Últimos 50
+    };
+  } catch (e) {
+    console.error('Error al obtener estadísticas:', e);
+    return { total: 0, promedio: 0, recientes: [] };
+  }
+}
