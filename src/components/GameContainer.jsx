@@ -530,7 +530,7 @@ export default function GameContainer({ onAdmin }) {
                   <div className="flex items-center justify-between mt-1 mb-2">
                     <div className="flex items-center gap-3">
                       <span className="text-white font-black text-sm md:text-base">
-                        💧 Barra de Agua
+                        📍 Tu Progreso
                       </span>
                       {/* RELOJ VISUAL PREMIUM */}
                       <motion.div 
@@ -546,11 +546,12 @@ export default function GameContainer({ onAdmin }) {
                         ⏱️ {timeLeft}
                       </motion.div>
                     </div>
-                    <span className="text-white/80 font-bold text-xs md:text-sm uppercase tracking-widest">
-                      {timeLeft <= 3 ? '¡Rápido! ⚡' : 'Misión Gota'}
-                    </span>
+                    {/* Badge de Puntos */}
+                    <div className="bg-yellow-400 text-slate-900 px-3 py-1 rounded-xl font-black text-xs shadow-lg">
+                      ✨ {correctas} GOTAS
+                    </div>
                   </div>
-                  <EnergyBar current={correctas} total={qList.length} />
+                  <EnergyBar current={indicePregunta + 1} total={qList.length} />
                 </div>
 
                 {/* Tarjeta de pregunta */}
