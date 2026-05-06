@@ -1,6 +1,6 @@
 // ─── ResultScreen.jsx ───
-// Pantalla final: "Diploma de Guardián del Agua"
-// Muestra el puntaje, un mensaje motivador y el botón para descargar PDF y reiniciar.
+// Pantalla final con sistema de MEDALLAS (Oro, Plata, Bronce)
+// Muestra un gran icono de medalla y permite descargar el PDF.
 
 import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
@@ -15,44 +15,64 @@ export default function ResultScreen({ nombre, correctas, total, onReiniciar }) 
   // ── Calculamos el porcentaje de aciertos ──
   const porcentaje = Math.round((correctas / total) * 100);
 
-  // ── Mensaje según el puntaje ──
-  const getMensaje = () => {
-    if (porcentaje === 100) return { titulo: "¡GUARDIÁN LEGENDARIO!", sub: "¡Perfecto! Sos un experto en el cuidado del agua. ¡El planeta te lo agradece!", emoji: "🏆" };
-    if (porcentaje >= 70)  return { titulo: "¡GUARDIÁN DEL AGUA!", sub: "¡Excelente! Sabés mucho sobre cómo cuidar el agua. ¡Seguí así!", emoji: "🥇" };
-    if (porcentaje >= 40)  return { titulo: "¡APRENDIZ GUARDIÁN!", sub: "¡Muy bien! Ya aprendiste muchas cosas importantes. ¡Practicá más!", emoji: "🥈" };
-    return { titulo: "¡GUARDIÁN EN FORMACIÓN!", sub: "¡No te rindas! Cada respuesta es una oportunidad para aprender. ¡Intentalo de nuevo!", emoji: "💪" };
+  // ── Configuración de Categoría y Medalla ──
+  const getMedalla = () => {
+    if (porcentaje === 100) {
+      return { 
+        icon: "🥇", 
+        label: "MEDALLA DE ORO", 
+        rango: "Guardián Legendario",
+        color: "text-yellow-400",
+        grad: "from-yellow-400 via-amber-500 to-orange-500"
+      };
+    }
+    if (porcentaje >= 70) {
+      return { 
+        icon: "🥈", 
+        label: "MEDALLA DE PLATA", 
+        rango: "Guardián Experto",
+        color: "text-gray-300",
+        grad: "from-slate-300 via-gray-400 to-slate-500"
+      };
+    }
+    if (porcentaje >= 40) {
+      return { 
+        icon: "🥉", 
+        label: "MEDALLA DE BRONCE", 
+        rango: "Guardián en Camino",
+        color: "text-orange-300",
+        grad: "from-orange-400 via-amber-700 to-orange-900"
+      };
+    }
+    return { 
+      icon: "💧", 
+      label: "MÉRITO DE PARTICIPACIÓN", 
+      rango: "Guardián en Formación",
+      color: "text-blue-300",
+      grad: "from-blue-400 via-indigo-500 to-purple-600"
+    };
   };
 
-  const { titulo, sub, emoji } = getMensaje();
-
-  // ── Colores del diploma según puntaje ──
-  const getColor = () => {
-    if (porcentaje === 100) return "from-yellow-400 via-amber-500 to-orange-500";
-    if (porcentaje >= 70)  return "from-cyan-400 via-blue-500 to-indigo-600";
-    if (porcentaje >= 40)  return "from-teal-400 via-cyan-500 to-blue-600";
-    return "from-blue-400 via-indigo-500 to-purple-600";
-  };
+  const medalla = getMedalla();
 
   // ── Lógica para descargar PDF ──
   const handleDownloadPDF = async () => {
     const element = diplomaRef.current;
     
-    // Crear un contenedor temporal para el renderizado A4
     const printContainer = document.createElement('div');
     printContainer.style.position = 'absolute';
     printContainer.style.left = '-9999px';
     printContainer.style.top = '0';
-    printContainer.style.width = '1123px'; // A4 Apaisado px approx
+    printContainer.style.width = '1123px'; 
     printContainer.style.height = '794px';
     document.body.appendChild(printContainer);
 
-    // Clonar el diploma y ajustarlo al tamaño A4
     const clone = element.cloneNode(true);
     clone.style.width = '1123px';
     clone.style.height = '794px';
     clone.style.maxWidth = 'none';
     clone.style.borderRadius = '0';
-    clone.style.border = '20px solid rgba(255,255,255,0.4)';
+    clone.style.border = '20px solid rgba(255,255,255,0.3)';
     printContainer.appendChild(clone);
 
     try {
@@ -70,10 +90,9 @@ export default function ResultScreen({ nombre, correctas, total, onReiniciar }) 
       });
 
       pdf.addImage(imgData, 'PNG', 0, 0, 1123, 794);
-      pdf.save(`Diploma_EPAS_${nombre.replace(/\s+/g, '_')}.pdf`);
+      pdf.save(`Diploma_${medalla.label.replace(/\s+/g, '_')}_${nombre.replace(/\s+/g, '_')}.pdf`);
     } catch (error) {
-      console.error("Error generando PDF:", error);
-      alert("Hubo un error al generar el PDF. Por favor intentá de nuevo.");
+      console.error("Error generating PDF:", error);
     } finally {
       document.body.removeChild(printContainer);
     }
@@ -81,96 +100,94 @@ export default function ResultScreen({ nombre, correctas, total, onReiniciar }) 
 
   return (
     <motion.div
-      className="fixed inset-0 flex flex-col items-center justify-center p-4 z-50 bg-black/60 backdrop-blur-md overflow-y-auto"
+      className="fixed inset-0 flex flex-col items-center justify-center p-4 z-50 bg-black/70 backdrop-blur-md overflow-y-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      {/* ── Contenedor del Diploma (Vista en pantalla) ── */}
+      {/* ── DIPLOMA (Contenedor que se exporta) ── */}
       <motion.div 
         ref={diplomaRef}
         className={`
           relative w-full max-w-2xl rounded-3xl overflow-hidden
-          bg-gradient-to-br ${getColor()}
+          bg-gradient-to-br ${medalla.grad}
           shadow-2xl border-4 border-white/30 p-8 text-center
         `}
-        initial={{ scale: 0.8, y: 20 }}
+        initial={{ scale: 0.8, y: 30 }}
         animate={{ scale: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 200 }}
       >
         {/* Decoración de fondo */}
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           {['💧', '🌊', '💦', '🐟', '🌿', '⭐'].map((e, i) => (
-            <span
-              key={i}
-              className="absolute text-7xl"
-              style={{
-                left: `${(i * 18) % 90}%`,
-                top: `${(i * 25) % 80}%`,
-                transform: `rotate(${i * 30}deg)`,
-              }}
-            >{e}</span>
+            <span key={i} className="absolute text-7xl" style={{ left: `${(i * 18) % 90}%`, top: `${(i * 25) % 80}%`, transform: `rotate(${i * 30}deg)` }}>{e}</span>
           ))}
         </div>
 
-        <div className="relative z-10">
+        <div className="relative z-10 flex flex-col items-center">
           {/* Logos */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center w-full mb-4">
             <img src={logoEpas} alt="EPAS" className="h-8 md:h-10 object-contain" />
             <img src={logoNeuquen} alt="Neuquén" className="h-12 md:h-14 object-contain" />
           </div>
 
-          <div className="bg-white/20 rounded-full px-6 py-2 inline-block mb-4 border border-white/40">
-            <p className="text-white font-black text-xs tracking-widest uppercase">
-              🎓 Diploma de Guardián del Agua
+          <div className="bg-white/20 rounded-full px-6 py-1 inline-block mb-4 border border-white/40">
+            <p className="text-white font-black text-[10px] tracking-widest uppercase">
+              Misión Gota · EPAS va a la Escuela
             </p>
           </div>
 
-          <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-1 italic">
-            Certificamos con orgullo que:
+          {/* GRAN MEDALLA CENTRAL */}
+          <motion.div 
+            className="mb-2"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.4, type: 'spring' }}
+          >
+            <div className="text-8xl md:text-9xl filter drop-shadow-2xl">{medalla.icon}</div>
+            <p className={`font-black text-xl md:text-2xl mt-2 drop-shadow-lg ${medalla.color}`}>
+              {medalla.label}
+            </p>
+          </motion.div>
+
+          <p className="text-white/80 text-[10px] font-bold uppercase tracking-[0.2em] mb-1 italic">
+            SE OTORGA ESTE DIPLOMA A:
           </p>
 
-          <h2 className="text-4xl md:text-5xl font-black text-white drop-shadow-2xl italic mb-4 border-b-4 border-yellow-400 inline-block px-4 pb-1">
+          <h2 className="text-4xl md:text-5xl font-black text-white drop-shadow-2xl italic mb-3 border-b-4 border-white/30 inline-block px-6 pb-1">
             {nombre}
           </h2>
 
-          <h1 className="text-2xl md:text-3xl font-black text-white drop-shadow-lg mb-3">
-            {titulo}
+          <h1 className="text-2xl font-black text-white/90 mb-4">
+            {medalla.rango}
           </h1>
 
-          <p className="text-white/90 font-bold text-base mb-6 max-w-md mx-auto leading-tight">
-            {sub}
-          </p>
-
-          {/* Stats en el diploma */}
-          <div className="flex justify-center gap-4 mb-2">
+          <div className="flex justify-center gap-6 mt-2">
             <div className="bg-black/10 rounded-xl px-4 py-2 border border-white/20">
-              <p className="text-white/70 text-[10px] font-bold uppercase">Aciertos</p>
-              <p className="text-white text-xl font-black">{correctas}/{total}</p>
+              <p className="text-white/70 text-[9px] font-bold uppercase">Misión</p>
+              <p className="text-white text-lg font-black">{correctas}/{total}</p>
             </div>
             <div className="bg-black/10 rounded-xl px-4 py-2 border border-white/20">
-              <p className="text-white/70 text-[10px] font-bold uppercase">Calificación</p>
-              <p className="text-white text-xl font-black">{porcentaje}%</p>
+              <p className="text-white/70 text-[9px] font-bold uppercase">Aciertos</p>
+              <p className="text-white text-lg font-black">{porcentaje}%</p>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* ── Botones de Acción (Fuera del diploma) ── */}
+      {/* ── BOTONES ACCIÓN ── */}
       <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full max-w-md">
         <motion.button
           onClick={handleDownloadPDF}
-          className="flex-1 bg-green-500 hover:bg-green-600 text-white font-black py-4 px-6 rounded-2xl shadow-xl flex items-center justify-center gap-2 text-lg transition-colors border-b-4 border-green-700"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          className="flex-1 bg-green-500 hover:bg-green-600 text-white font-black py-4 px-6 rounded-2xl shadow-xl flex items-center justify-center gap-2 text-lg border-b-4 border-green-700"
+          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
         >
-          🎓 Descargar Diploma (PDF)
+          📥 Descargar PDF
         </motion.button>
 
         <motion.button
           onClick={onReiniciar}
-          className="flex-1 bg-white hover:bg-gray-100 text-epas-sky font-black py-4 px-6 rounded-2xl shadow-xl text-lg transition-colors border-b-4 border-gray-300"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          className="flex-1 bg-white hover:bg-gray-100 text-epas-sky font-black py-4 px-6 rounded-2xl shadow-xl text-lg border-b-4 border-gray-300"
+          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
         >
           🔄 Jugar de nuevo
         </motion.button>
