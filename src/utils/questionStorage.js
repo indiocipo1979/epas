@@ -7,6 +7,12 @@ import { PREGUNTAS as PREGUNTAS_DEFAULT } from '../data/questions';
 
 // ── Obtener todas las preguntas ──
 export async function getPreguntas() {
+  // Si no hay conexión configurada, devolvemos las locales de una
+  if (!supabase) {
+    console.log('Modo Local: Cargando preguntas predeterminadas');
+    return PREGUNTAS_DEFAULT;
+  }
+
   const { data, error } = await supabase
     .from('preguntas')
     .select('*')
