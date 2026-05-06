@@ -13,7 +13,7 @@ import ConfettiEffect from './ConfettiEffect';
 import FloatingCharacter from './FloatingCharacter';
 import logoEpas from '../assets/logo-epas.png';
 import logoNeuquen from '../assets/logo-neuquen.png';
-import { MENSAJES_CORRECTA, MENSAJES_INCORRECTA } from '../data/questions';
+import { MENSAJES_CORRECTA, MENSAJES_INCORRECTA, PREGUNTAS as PREGUNTAS_DEFAULT } from '../data/questions';
 import { getPreguntas } from '../utils/questionStorage';
 import { supabase } from '../lib/supabase';
 
@@ -230,34 +230,21 @@ export default function GameContainer({ onAdmin }) {
     setLoading(false);
   };
 
+  // ── Renderizado de seguridad ──
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#29ABE2] flex flex-col items-center justify-center">
-        <div className="text-white text-3xl mb-4 animate-bounce">💧</div>
-        <div className="text-white text-xl font-black animate-pulse">Conectando Misión Gota...</div>
-        <div className="text-white/50 text-xs mt-4">Versión 2.1 - Supabase Mode</div>
+      <div style={{ position: 'fixed', inset: 0, backgroundColor: '#29ABE2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>Cargando Misión...</p>
       </div>
     );
   }
 
-  // Si después de cargar no hay preguntas (caso extremo), usamos las default
-  const listaPreguntas = preguntas.length > 0 ? preguntas : [];
-
-  const preguntaActual = listaPreguntas[indicePregunta];
-
-  if (!preguntaActual && pantalla === 'juego') {
-    return (
-      <div className="fixed inset-0 bg-epas-sky flex flex-col items-center justify-center p-6 text-center">
-        <h2 className="text-white text-2xl font-black mb-4">¡Ups! No pudimos cargar las preguntas.</h2>
-        <button onClick={() => window.location.reload()} className="bg-white text-epas-sky px-8 py-3 rounded-full font-bold">
-          Reintentar
-        </button>
-      </div>
-    );
-  }
+  // Fallback para preguntas
+  const qList = (preguntas && preguntas.length > 0) ? preguntas : PREGUNTAS_DEFAULT;
+  const preguntaActual = qList[indicePregunta] || PREGUNTAS_DEFAULT[0];
 
   return (
-    <div className="fixed inset-0 flex flex-col font-game overflow-hidden">
+    <div className="fixed inset-0 flex flex-col font-game overflow-hidden" style={{ backgroundColor: bgColor.bg }}>
 
       {/* ── Fondo animado con color EPAS ── */}
       <motion.div

@@ -1,13 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const url = import.meta.env.VITE_SUPABASE_URL;
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Si faltan las credenciales, creamos un cliente "dummy" o nulo para no romper la app
-export const supabase = (supabaseUrl && supabaseAnonKey) 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+let client = null;
 
-if (!supabase) {
-  console.warn('⚠️ Supabase credentials missing. Running in local mode.');
+// Solo intentamos crear el cliente si las variables existen y son válidas
+if (url && key && url.includes('supabase.co')) {
+  try {
+    client = createClient(url, key);
+  } catch (e) {
+    console.error('Error al inicializar Supabase client:', e);
+  }
 }
+
+export const supabase = client;
