@@ -298,6 +298,19 @@ export default function GameContainer({ onAdmin }) {
       {/* ── Confeti ── */}
       <ConfettiEffect activo={confeti} />
 
+      {/* ── Alerta de tiempo crítico (Borde rojo) ── */}
+      <AnimatePresence>
+        {timeLeft <= 3 && pantalla === 'juego' && !feedback.visible && (
+          <motion.div 
+            className="fixed inset-0 pointer-events-none border-[12px] border-red-500/40 z-[99]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, repeat: Infinity }}
+          />
+        )}
+      </AnimatePresence>
+
       {/* ── Feedback overlay ── */}
       <FeedbackOverlay
         visible={feedback.visible}
@@ -477,24 +490,39 @@ export default function GameContainer({ onAdmin }) {
               {/* Panel derecho: pregunta */}
               <div className="flex-1 flex flex-col p-4 md:p-6 min-w-0">
 
-                {/* Header con barra y RELOJ */}
-                <div className="glass-card p-4 mb-4 flex-shrink-0">
-                  <div className="flex items-center justify-between mb-2">
+                {/* Header con barras */}
+                <div className="glass-card p-4 mb-4 flex-shrink-0 relative overflow-hidden">
+                  {/* Barra de Tiempo (Fusible) */}
+                  <div className="absolute top-0 left-0 h-1.5 bg-white/10 w-full overflow-hidden">
+                    <motion.div 
+                      className={`h-full ${timeLeft > 5 ? 'bg-green-400' : timeLeft > 2 ? 'bg-yellow-400' : 'bg-red-500'}`}
+                      initial={{ width: '100%' }}
+                      animate={{ width: `${(timeLeft / 10) * 100}%` }}
+                      transition={{ duration: 1, ease: 'linear' }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between mt-1 mb-2">
                     <div className="flex items-center gap-3">
                       <span className="text-white font-black text-sm md:text-base">
                         💧 Barra de Agua
                       </span>
-                      {/* RELOJ VISUAL */}
+                      {/* RELOJ VISUAL PREMIUM */}
                       <motion.div 
-                        className={`flex items-center gap-1 px-3 py-1 rounded-full font-black text-sm ${timeLeft <= 3 ? 'bg-red-500 text-white animate-pulse' : 'bg-white/20 text-white'}`}
-                        animate={timeLeft <= 3 ? { scale: [1, 1.1, 1] } : {}}
-                        transition={{ repeat: Infinity, duration: 0.5 }}
+                        className={`flex items-center gap-1 px-4 py-1.5 rounded-2xl font-black text-lg shadow-lg ${
+                          timeLeft <= 3 ? 'bg-red-600 text-white shadow-red-500/50' : 'bg-white/90 text-epas-sky'
+                        }`}
+                        animate={timeLeft <= 3 ? { 
+                          scale: [1, 1.2, 1],
+                          rotate: [-2, 2, -2, 0]
+                        } : {}}
+                        transition={{ repeat: Infinity, duration: 0.4 }}
                       >
-                        ⏱️ {timeLeft}s
+                        ⏱️ {timeLeft}
                       </motion.div>
                     </div>
-                    <span className="text-white/80 font-bold text-sm">
-                      Misión Gota · EPAS
+                    <span className="text-white/80 font-bold text-xs md:text-sm uppercase tracking-widest">
+                      {timeLeft <= 3 ? '¡Rápido! ⚡' : 'Misión Gota'}
                     </span>
                   </div>
                   <EnergyBar current={correctas} total={qList.length} />
