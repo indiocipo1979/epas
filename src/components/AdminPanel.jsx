@@ -105,7 +105,7 @@ export default function AdminPanel({ onVolver }) {
           </button>
           <div>
             <h1 className="text-xl font-black tracking-tight flex items-center gap-2">
-              ⚙️ Administración
+              📊 Panel de Control
             </h1>
             <div className="flex gap-4 mt-1">
               <button 
