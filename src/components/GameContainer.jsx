@@ -150,30 +150,49 @@ export default function GameContainer({ onAdmin }) {
 
   // ── Cargar preguntas al iniciar y escuchar cambios ──
   useEffect(() => {
-    // 1. Carga inicial
+    // 1. Temporizador de seguridad (fuerza el inicio en 2.5 seg pase lo que pase)
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2500);
+
+    // 2. Carga inicial
     const cargar = async () => {
       try {
         const data = await getPreguntas();
-        setPreguntas(data || []);
+        if (data && data.length > 0) {
+          setPreguntas(data);
+        } else {
+          setPreguntas(PREGUNTAS_DEFAULT);
+        }
       } catch (e) {
-        console.error("Fallo carga inicial:", e);
+        console.error("Fallo carga:", e);
+        setPreguntas(PREGUNTAS_DEFAULT);
       } finally {
         setLoading(false);
+        clearTimeout(timer);
       }
     };
     cargar();
 
-    // 2. Escuchar cambios en tiempo real (solo si supabase está configurado)
+    // 3. Escuchar cambios (solo si supabase está configurado)
     if (supabase) {
-      const channel = supabase
-        .channel('cambios-preguntas')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'preguntas' }, () => {
-          cargar(); 
-        })
-        .subscribe();
+      try {
+        const channel = supabase
+          .channel('cambios-preguntas')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'preguntas' }, () => {
+            cargar(); 
+          })
+          .subscribe();
 
-      return () => supabase.removeChannel(channel);
+        return () => {
+          supabase.removeChannel(channel);
+          clearTimeout(timer);
+        };
+      } catch (e) {
+        console.error("Error suscripcion:", e);
+      }
     }
+    return () => clearTimeout(timer);
   }, []);
 
   const bgColor  = BG_COLORS[colorIndex % BG_COLORS.length];
