@@ -214,14 +214,14 @@ export default function GameContainer({ onAdmin }) {
     setFeedback(f => ({ ...f, visible: false }));
     setTimeout(async () => {
       const siguiente = indicePregunta + 1;
-      if (siguiente >= preguntas.length) {
+      if (siguiente >= qList.length) {
         // Al terminar, guardamos en la base de datos (solo si existe supabase)
         if (supabase) {
           try {
             await supabase.from('participaciones').insert([{
               nombre: nombre || 'Anónimo',
               puntaje: correctas,
-              total: preguntas.length
+              total: qList.length
             }]);
           } catch (e) {
             console.error('Error guardando estadística:', e);
@@ -466,7 +466,7 @@ export default function GameContainer({ onAdmin }) {
                       Misión Gota · EPAS
                     </span>
                   </div>
-                  <EnergyBar current={correctas} total={preguntas.length} />
+                  <EnergyBar current={correctas} total={qList.length} />
                 </div>
 
                 {/* Tarjeta de pregunta */}
@@ -474,7 +474,7 @@ export default function GameContainer({ onAdmin }) {
                   <QuestionCard
                     pregunta={preguntaActual}
                     indicePregunta={indicePregunta}
-                    total={preguntas.length}
+                    total={qList.length}
                     onRespuesta={handleRespuesta}
                   />
                 </div>
@@ -490,7 +490,7 @@ export default function GameContainer({ onAdmin }) {
           <ResultScreen
             nombre={nombre}
             correctas={correctas}
-            total={preguntas.length}
+            total={qList.length}
             onReiniciar={handleReiniciar}
           />
         )}
