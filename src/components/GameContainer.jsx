@@ -225,9 +225,17 @@ export default function GameContainer({ onAdmin }) {
       setConfeti(true);
       setTimeout(() => setConfeti(false), 3000);
     }
-    const mensajes = esCorrecta ? MENSAJES_CORRECTA : MENSAJES_INCORRECTA;
-    const mensaje  = mensajes[Math.floor(Math.random() * mensajes.length)];
-    setFeedback({ visible: true, esCorrecta, mensaje, dato });
+    
+    // Si esCorrecta es -1, significa tiempo agotado
+    const esTiempoAgotado = esCorrecta === -1;
+    const mensajes = esCorrecta === true ? MENSAJES_CORRECTA : MENSAJES_INCORRECTA;
+    let mensaje = mensajes[Math.floor(Math.random() * mensajes.length)];
+    
+    if (esTiempoAgotado) {
+      mensaje = "¡Se acabó el tiempo! ⏱️ Tenés que ser más rápido.";
+    }
+
+    setFeedback({ visible: true, esCorrecta: esCorrecta === true, mensaje, dato });
   };
 
   // ── Avanzar a la siguiente pregunta ──
