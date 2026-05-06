@@ -1,120 +1,137 @@
-// ─── questionStorage.js ───
-// Utilidad para gestionar preguntas en Supabase (Base de Datos).
-// Permite operaciones CRUD que impactan en todos los usuarios en tiempo real.
-
 import { supabase } from '../lib/supabase';
 import { PREGUNTAS as PREGUNTAS_DEFAULT } from '../data/questions';
 
+// Nombre de la clave para almacenamiento local de respaldo
+const LOCAL_STORAGE_KEY = 'mision_gota_preguntas';
+
+// Helper para obtener preguntas locales
+const getLocales = () => {
+  const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+  return saved ? JSON.parse(saved) : PREGUNTAS_DEFAULT;
+};
+
+// Helper para guardar preguntas locales
+const saveLocales = (preguntas) => {
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(preguntas));
+  return preguntas;
+};
+
 // ── Obtener todas las preguntas ──
 export async function getPreguntas() {
-  // Si no hay conexión configurada, devolvemos las locales de una
-  if (!supabase) {
-    console.log('Modo Local: Cargando preguntas predeterminadas');
-    return PREGUNTAS_DEFAULT;
-  }
+  if (!supabase) return getLocales();
 
-  const { data, error } = await supabase
-    .from('preguntas')
-    .select('*')
-    .order('orden', { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from('preguntas')
+      .select('*')
+      .order('orden', { ascending: true });
 
-  if (error) {
-    console.error('Error cargando preguntas de Supabase:', error);
-    return PREGUNTAS_DEFAULT; // Plan B: cargar las locales
-  }
-
-  // Si la base está vacía, intentamos cargar las predeterminadas
-  if (!data || data.length === 0) {
-    console.log('Base vacía, intentando inicializar...');
-    try {
-      await resetPreguntas();
-      const { data: retryData } = await supabase.from('preguntas').select('*').order('orden', { ascending: true });
-      return retryData || PREGUNTAS_DEFAULT;
-    } catch (e) {
-      return PREGUNTAS_DEFAULT;
+    if (error || !data || data.length === 0) {
+      console.warn('Usando respaldo local por error o base vacía');
+      return getLocales();
     }
+    return data;
+  } catch (e) {
+    return getLocales();
+  }
+}
+
+// ── Añadir pregunta ──
+export async function addPregunta(nueva) {
+  if (supabase) {
+    try {
+      const { data: actuales } = await supabase.from('preguntas').select('orden');
+      const maxOrden = actuales?.reduce((max, p) => Math.max(max, p.orden || 0), -1) ?? -1;
+      
+      const { error } = await supabase.from('preguntas').insert([{ 
+        ...nueva, 
+        orden: maxOrden + 1 
+      }]);
+      
+      if (!error) return getPreguntas();
+    } catch (e) { console.error(e); }
   }
 
-  return data;
+  // Fallback Local
+  const locales = getLocales();
+  const actualizada = [...locales, { ...nueva, id: Date.now(), orden: locales.length }];
+  return saveLocales(actualizada);
 }
 
-// ── Agregar una pregunta nueva ──
-export async function addPregunta(pregunta) {
-  // Calculamos el siguiente orden
-  const { data: actual } = await supabase.from('preguntas').select('orden').order('orden', { ascending: false }).limit(1);
-  const nextOrder = actual && actual.length > 0 ? (actual[0].orden + 1) : 0;
+// ── Actualizar pregunta ──
+export async function updatePregunta(id, cambios) {
+  if (supabase && typeof id === 'number' && id < 1000000000000) { // IDs de Supabase son bajos
+    try {
+      const { error } = await supabase.from('preguntas').update(cambios).eq('id', id);
+      if (!error) return getPreguntas();
+    } catch (e) { console.error(e); }
+  }
 
-  const nueva = { ...pregunta, orden: nextOrder };
-  const { data, error } = await supabase.from('preguntas').insert([nueva]).select();
-  
-  if (error) throw error;
-  return getPreguntas();
+  // Fallback Local
+  const locales = getLocales();
+  const actualizada = locales.map(p => p.id === id ? { ...p, ...cambios } : p);
+  return saveLocales(actualizada);
 }
 
-// ── Actualizar una pregunta existente ──
-export async function updatePregunta(id, datos) {
-  const { error } = await supabase
-    .from('preguntas')
-    .update(datos)
-    .eq('id', id);
-
-  if (error) throw error;
-  return getPreguntas();
-}
-
-// ── Eliminar una pregunta ──
+// ── Eliminar pregunta ──
 export async function deletePregunta(id) {
-  const { error } = await supabase
-    .from('preguntas')
-    .delete()
-    .eq('id', id);
+  if (supabase && typeof id === 'number' && id < 1000000000000) {
+    try {
+      const { error } = await supabase.from('preguntas').delete().eq('id', id);
+      if (!error) return getPreguntas();
+    } catch (e) { console.error(e); }
+  }
 
-  if (error) throw error;
-  return getPreguntas();
+  // Fallback Local
+  const locales = getLocales();
+  const actualizada = locales.filter(p => p.id !== id);
+  return saveLocales(actualizada);
 }
 
-// ── Reordenar una pregunta (mover arriba/abajo) ──
-export async function reorderPregunta(id, direction) {
+// ── Reordenar pregunta ──
+export async function reorderPregunta(id, direccion) {
   const preguntas = await getPreguntas();
   const index = preguntas.findIndex(p => p.id === id);
   if (index === -1) return preguntas;
 
-  const newIndex = direction === 'up' ? index - 1 : index + 1;
-  if (newIndex < 0 || newIndex >= preguntas.length) return preguntas;
+  const nuevas = [...preguntas];
+  const targetIndex = direccion === 'up' ? index - 1 : index + 1;
 
-  const p1 = preguntas[index];
-  const p2 = preguntas[newIndex];
+  if (targetIndex >= 0 && targetIndex < nuevas.length) {
+    [nuevas[index], nuevas[targetIndex]] = [nuevas[targetIndex], nuevas[index]];
+    
+    // Actualizamos el campo 'orden'
+    const final = nuevas.map((p, i) => ({ ...p, orden: i }));
 
-  // Intercambiamos el campo 'orden'
-  const { error } = await supabase
-    .from('preguntas')
-    .update({ orden: p2.orden })
-    .eq('id', p1.id);
-
-  const { error: error2 } = await supabase
-    .from('preguntas')
-    .update({ orden: p1.orden })
-    .eq('id', p2.id);
-
-  if (error || error2) console.error('Error reordenando');
-  
-  return getPreguntas();
+    if (supabase) {
+      try {
+        // En un caso real haríamos un upsert, pero para simplificar y asegurar:
+        for (const p of final) {
+          if (typeof p.id === 'number' && p.id < 1000000000000) {
+            await supabase.from('preguntas').update({ orden: p.orden }).eq('id', p.id);
+          }
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    return saveLocales(final);
+  }
+  return preguntas;
 }
 
-// ── Restaurar las preguntas predeterminadas ──
+// ── Restaurar predeterminadas ──
 export async function resetPreguntas() {
-  // 1. Borrar todas
-  await supabase.from('preguntas').delete().neq('id', 0); // Borra todo
+  if (supabase) {
+    try {
+      await supabase.from('preguntas').delete().neq('id', 0);
+      const batch = PREGUNTAS_DEFAULT.map((p, i) => {
+        const { id, ...resto } = p;
+        return { ...resto, orden: i };
+      });
+      await supabase.from('preguntas').insert(batch);
+    } catch (e) { console.error(e); }
+  }
   
-  // 2. Insertar las default con un orden secuencial
-  const batch = PREGUNTAS_DEFAULT.map((p, i) => {
-    // eslint-disable-next-line no-unused-vars
-    const { id, ...resto } = p; // Quitamos el ID viejo para que Supabase asigne uno nuevo
-    return { ...resto, orden: i };
-  });
-
-  const { error } = await supabase.from('preguntas').insert(batch);
-  if (error) console.error('Error restaurando preguntas:', error);
-  
-  return getPreguntas();
+  localStorage.removeItem(LOCAL_STORAGE_KEY);
+  return PREGUNTAS_DEFAULT;
 }
