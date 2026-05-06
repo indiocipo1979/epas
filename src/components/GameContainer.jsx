@@ -232,8 +232,10 @@ export default function GameContainer({ onAdmin }) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#29ABE2] flex items-center justify-center">
-        <div className="text-white text-xl font-black animate-pulse">Cargando Misión...</div>
+      <div className="fixed inset-0 bg-[#29ABE2] flex flex-col items-center justify-center">
+        <div className="text-white text-3xl mb-4 animate-bounce">💧</div>
+        <div className="text-white text-xl font-black animate-pulse">Conectando Misión Gota...</div>
+        <div className="text-white/50 text-xs mt-4">Versión 2.1 - Supabase Mode</div>
       </div>
     );
   }
