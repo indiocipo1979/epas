@@ -27,12 +27,25 @@ const PREGUNTA_VACIA = {
 };
 
 export default function AdminPanel({ onVolver }) {
-  const [preguntas, setPreguntas] = useState(() => getPreguntas());
+  const [preguntas, setPreguntas] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState(null); // null | 'nueva' | id
   const [form, setForm] = useState({ ...PREGUNTA_VACIA });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [toast, setToast] = useState(null);
+
+  // ── Cargar preguntas al iniciar ──
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const data = await getPreguntas();
+    setPreguntas(data);
+    setLoading(false);
+  };
 
   // ── Mostrar toast ──
   const showToast = (msg, tipo = 'success') => {
@@ -59,44 +72,63 @@ export default function AdminPanel({ onVolver }) {
   };
 
   // ── Guardar pregunta ──
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     // Validación
     if (!form.pregunta.trim()) return showToast('Escribí la pregunta', 'error');
     if (form.opciones.some(o => !o.trim())) return showToast('Completá las 4 opciones', 'error');
     if (!form.dato.trim()) return showToast('Escribí el dato educativo', 'error');
 
-    let nuevas;
-    if (editando === 'nueva') {
-      nuevas = addPregunta(form);
-      showToast('✅ Pregunta agregada');
-    } else {
-      nuevas = updatePregunta(editando, form);
-      showToast('✅ Pregunta actualizada');
+    setLoading(true);
+    try {
+      let nuevas;
+      if (editando === 'nueva') {
+        nuevas = await addPregunta(form);
+        showToast('✅ Pregunta agregada');
+      } else {
+        nuevas = await updatePregunta(editando, form);
+        showToast('✅ Pregunta actualizada');
+      }
+      setPreguntas(nuevas);
+      setEditando(null);
+    } catch (e) {
+      showToast('❌ Error al guardar', 'error');
+    } finally {
+      setLoading(false);
     }
-    setPreguntas(nuevas);
-    setEditando(null);
   };
 
   // ── Eliminar pregunta ──
-  const handleEliminar = (id) => {
-    const nuevas = deletePregunta(id);
+  const handleEliminar = async (id) => {
+    setLoading(true);
+    const nuevas = await deletePregunta(id);
     setPreguntas(nuevas);
     setConfirmDelete(null);
+    setLoading(false);
     showToast('🗑️ Pregunta eliminada');
   };
 
   // ── Reordenar ──
-  const handleReorder = (id, dir) => {
-    const nuevas = reorderPregunta(id, dir);
+  const handleReorder = async (id, dir) => {
+    const nuevas = await reorderPregunta(id, dir);
     setPreguntas([...nuevas]);
   };
 
   // ── Restaurar predeterminadas ──
-  const handleReset = () => {
-    const nuevas = resetPreguntas();
+  const handleReset = async () => {
+    setLoading(true);
+    const nuevas = await resetPreguntas();
     setPreguntas(nuevas);
     setConfirmReset(false);
+    setLoading(false);
     showToast('🔄 Preguntas restauradas');
+  };
+
+  // ── Exportar JSON para código fuente ──
+  const handleExport = () => {
+    const json = JSON.stringify(preguntas, null, 2);
+    navigator.clipboard.writeText(`export const PREGUNTAS = ${json};`).then(() => {
+      showToast('📋 ¡JSON copiado al portapapeles!');
+    });
   };
 
   // ── Actualizar campo de opción ──
@@ -161,6 +193,18 @@ export default function AdminPanel({ onVolver }) {
             📚 {preguntas.length} preguntas
           </span>
           <button
+            onClick={handleExport}
+            style={{
+              background: 'rgba(34,197,94,0.15)',
+              border: '1px solid rgba(34,197,94,0.3)',
+              borderRadius: '10px', color: '#22c55e', cursor: 'pointer',
+              padding: '8px 14px', fontSize: '13px', fontWeight: 700,
+              fontFamily: "'Nunito', sans-serif",
+            }}
+          >
+            📋 Exportar JSON
+          </button>
+          <button
             onClick={() => setConfirmReset(true)}
             style={{
               background: 'rgba(239,68,68,0.15)',
@@ -182,6 +226,8 @@ export default function AdminPanel({ onVolver }) {
         <div style={{
           flex: 1, overflowY: 'auto', padding: '20px 24px',
           scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.2) transparent',
+          opacity: loading ? 0.6 : 1, pointerEvents: loading ? 'none' : 'auto',
+          transition: 'opacity 0.2s',
         }}>
 
           {/* Botón nueva pregunta */}

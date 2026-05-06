@@ -15,6 +15,7 @@ import logoEpas from '../assets/logo-epas.png';
 import logoNeuquen from '../assets/logo-neuquen.png';
 import { MENSAJES_CORRECTA, MENSAJES_INCORRECTA } from '../data/questions';
 import { getPreguntas } from '../utils/questionStorage';
+import { supabase } from '../lib/supabase';
 
 // ─── Paleta de fondos rotativos por pregunta (celeste / magenta / naranja) ───
 const BG_COLORS = [
@@ -137,13 +138,36 @@ function InstitutionalFooter({ onAdmin }) {
 
 export default function GameContainer({ onAdmin }) {
   // ── Estado del juego ──
-  const [preguntas, setPreguntas]             = useState(() => getPreguntas());
+  const [preguntas, setPreguntas]             = useState([]);
+  const [loading, setLoading]                 = useState(true);
   const [pantalla, setPantalla]               = useState('inicio');
+  const [nombre, setNombre]                   = useState(''); // Nuevo estado para el nombre
   const [indicePregunta, setIndicePregunta]   = useState(0);
   const [correctas, setCorrectas]             = useState(0);
   const [feedback, setFeedback]               = useState({ visible: false, esCorrecta: false, mensaje: '', dato: '' });
   const [confeti, setConfeti]                 = useState(false);
   const [colorIndex, setColorIndex]           = useState(0);
+
+  // ── Cargar preguntas al iniciar y escuchar cambios ──
+  useEffect(() => {
+    // 1. Carga inicial
+    const cargar = async () => {
+      const data = await getPreguntas();
+      setPreguntas(data);
+      setLoading(false);
+    };
+    cargar();
+
+    // 2. Escuchar cambios en tiempo real (impacto en todos)
+    const channel = supabase
+      .channel('cambios-preguntas')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'preguntas' }, () => {
+        cargar(); // Recargamos si algo cambia
+      })
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, []);
 
   const bgColor  = BG_COLORS[colorIndex % BG_COLORS.length];
 
@@ -160,11 +184,21 @@ export default function GameContainer({ onAdmin }) {
   };
 
   // ── Avanzar a la siguiente pregunta ──
-  const handleContinuar = () => {
+  const handleContinuar = async () => {
     setFeedback(f => ({ ...f, visible: false }));
-    setTimeout(() => {
+    setTimeout(async () => {
       const siguiente = indicePregunta + 1;
       if (siguiente >= preguntas.length) {
+        // Al terminar, guardamos en la base de datos
+        try {
+          await supabase.from('participaciones').insert([{
+            nombre: nombre || 'Anónimo',
+            puntaje: correctas,
+            total: preguntas.length
+          }]);
+        } catch (e) {
+          console.error('Error guardando estadística:', e);
+        }
         setPantalla('final');
       } else {
         setIndicePregunta(siguiente);
@@ -174,15 +208,26 @@ export default function GameContainer({ onAdmin }) {
   };
 
   // ── Reiniciar ──
-  const handleReiniciar = () => {
-    setPreguntas(getPreguntas()); // Recargar preguntas (por si el admin las cambió)
+  const handleReiniciar = async () => {
+    setLoading(true);
+    const data = await getPreguntas(); 
+    setPreguntas(data);
     setIndicePregunta(0);
     setCorrectas(0);
     setFeedback({ visible: false, esCorrecta: false, mensaje: '', dato: '' });
     setConfeti(false);
     setColorIndex(0);
     setPantalla('inicio');
+    setLoading(false);
   };
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-[#29ABE2] flex items-center justify-center">
+        <div className="text-white text-xl font-black animate-pulse">Cargando Misión...</div>
+      </div>
+    );
+  }
 
   const preguntaActual = preguntas[indicePregunta];
 
@@ -298,9 +343,32 @@ export default function GameContainer({ onAdmin }) {
                 ))}
               </motion.div>
 
+              {/* Input de Nombre */}
+              <motion.div
+                className="w-full max-w-xs mb-6"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.55 }}
+              >
+                <input
+                  type="text"
+                  placeholder="Tu nombre aquí..."
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  className="w-full p-4 rounded-2xl border-4 border-white/30 bg-white/20 text-white placeholder:text-white/50 text-center font-black text-xl outline-none focus:border-white/60 transition-all"
+                />
+              </motion.div>
+
               {/* Botón INICIAR */}
               <motion.button
-                onClick={() => { setPantalla('juego'); setColorIndex(0); }}
+                onClick={() => {
+                  if (!nombre.trim()) {
+                    alert('¡Por favor, ingresá tu nombre para recibir tu diploma!');
+                    return;
+                  }
+                  setPantalla('juego');
+                  setColorIndex(0);
+                }}
                 style={{
                   background: '#FFD700',
                   color: '#1A3A6B',
@@ -389,6 +457,7 @@ export default function GameContainer({ onAdmin }) {
         ══════════════════════════════ */}
         {pantalla === 'final' && (
           <ResultScreen
+            nombre={nombre}
             correctas={correctas}
             total={preguntas.length}
             onReiniciar={handleReiniciar}

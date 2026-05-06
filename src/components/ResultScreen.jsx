@@ -7,7 +7,7 @@ import FloatingCharacter from './FloatingCharacter';
 import logoEpas from '../assets/logo-epas.png';
 import logoNeuquen from '../assets/logo-neuquen.png';
 
-export default function ResultScreen({ correctas, total, onReiniciar }) {
+export default function ResultScreen({ nombre, correctas, total, onReiniciar }) {
   // ── Calculamos el porcentaje de aciertos ──
   const porcentaje = Math.round((correctas / total) * 100);
 
@@ -79,26 +79,25 @@ export default function ResultScreen({ correctas, total, onReiniciar }) {
             </p>
           </motion.div>
 
-          {/* ── Personaje flotante ── */}
-          <div className="flex justify-center mb-2">
-            <FloatingCharacter size="md" happy={porcentaje >= 40} />
-          </div>
-
-          {/* ── Emoji de trofeo ── */}
+          {/* ── Nombre del Jugador ── */}
           <motion.div
-            className="text-7xl mb-3"
-            animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.15, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mb-2"
           >
-            {emoji}
+            <p className="text-white/70 text-xs font-black uppercase tracking-tighter mb-1">Este diploma se otorga a:</p>
+            <h2 className="text-4xl md:text-5xl font-black text-white drop-shadow-md italic underline decoration-yellow-400 underline-offset-8">
+              {nombre}
+            </h2>
           </motion.div>
 
           {/* ── Título del diploma ── */}
           <motion.h1
-            className="text-3xl md:text-4xl font-black text-white drop-shadow-lg mb-2"
+            className="text-2xl md:text-3xl font-black text-white drop-shadow-lg mt-8 mb-2"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, type: "spring" }}
+            transition={{ delay: 0.4, type: "spring" }}
           >
             {titulo}
           </motion.h1>
@@ -108,7 +107,7 @@ export default function ResultScreen({ correctas, total, onReiniciar }) {
             className="text-white/90 font-semibold text-base mb-6 leading-relaxed"
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.5 }}
           >
             {sub}
           </motion.p>
