@@ -13,6 +13,7 @@ import {
   reorderPregunta,
   resetPreguntas,
 } from '../utils/questionStorage';
+import { PREGUNTAS as PREGUNTAS_DEFAULT } from '../data/questions';
 
 // ── Emojis disponibles para las preguntas ──
 const EMOJIS = ['🌊', '🚰', '🏔️', '🌵', '💧', '🏢', '🌱', '🔧', '🚿', '🤝', '🐟', '⭐', '🌍', '🧪', '🏠', '❄️', '☀️', '🌧️', '🏞️', '🐠'];
@@ -42,9 +43,20 @@ export default function AdminPanel({ onVolver }) {
 
   const fetchData = async () => {
     setLoading(true);
-    const data = await getPreguntas();
-    setPreguntas(data);
-    setLoading(false);
+    try {
+      const data = await getPreguntas();
+      // Si la base de datos devuelve algo, lo usamos. Si no, usamos las locales.
+      if (data && data.length > 0) {
+        setPreguntas(data);
+      } else {
+        setPreguntas(PREGUNTAS_DEFAULT);
+      }
+    } catch (error) {
+      console.error('Error al cargar datos:', error);
+      setPreguntas(PREGUNTAS_DEFAULT);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ── Mostrar toast ──
