@@ -246,15 +246,26 @@ export default function GameContainer({ onAdmin }) {
       if (siguiente >= qList.length) {
         // Al terminar, guardamos en la base de datos (solo si existe supabase)
         if (supabase) {
-          try {
-            await supabase.from('participaciones').insert([{
-              nombre: nombre || 'Anónimo',
-              puntaje: correctas,
-              total: qList.length,
-              tiempo_total: tiempoTotal // Enviamos el tiempo para el ranking
-            }]);
-          } catch (e) {
-            console.error('Error guardando estadística:', e);
+          console.log('Intentando guardar participacion...', { nombre, correctas, tiempoTotal });
+          const { error } = await supabase.from('participaciones').insert([{
+            nombre: nombre || 'Anónimo',
+            puntaje: correctas,
+            total: qList.length,
+            tiempo_total: tiempoTotal
+          }]);
+          
+          if (error) {
+            console.error('Error CRÍTICO de Supabase:', error.message);
+            // Si falla por la columna, intentamos guardar sin tiempo para no perder el dato
+            if (error.message.includes('tiempo_total')) {
+               await supabase.from('participaciones').insert([{
+                nombre: nombre || 'Anónimo',
+                puntaje: correctas,
+                total: qList.length
+              }]);
+            }
+          } else {
+            console.log('✅ Partida guardada con éxito');
           }
         }
         setPantalla('final');
