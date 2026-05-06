@@ -149,6 +149,7 @@ export default function GameContainer({ onAdmin }) {
   const [colorIndex, setColorIndex]           = useState(0);
   const [timeLeft, setTimeLeft]               = useState(10); // Tiempo inicial
   const [timerActive, setTimerActive]         = useState(false);
+  const [tiempoTotal, setTiempoTotal]         = useState(0); // Acumulador total
 
   // ── Cargar preguntas al iniciar y escuchar cambios ──
   useEffect(() => {
@@ -203,6 +204,7 @@ export default function GameContainer({ onAdmin }) {
     if (timerActive && timeLeft > 0 && pantalla === 'juego' && !feedback.visible) {
       interval = setInterval(() => {
         setTimeLeft(prev => prev - 1);
+        setTiempoTotal(prev => prev + 1); // Sumar al total cada segundo
       }, 1000);
     } else if (timeLeft === 0 && timerActive && pantalla === 'juego' && !feedback.visible) {
       // TIEMPO AGOTADO
@@ -240,7 +242,8 @@ export default function GameContainer({ onAdmin }) {
             await supabase.from('participaciones').insert([{
               nombre: nombre || 'Anónimo',
               puntaje: correctas,
-              total: qList.length
+              total: qList.length,
+              tiempo_total: tiempoTotal // Enviamos el tiempo para el ranking
             }]);
           } catch (e) {
             console.error('Error guardando estadística:', e);
@@ -266,6 +269,7 @@ export default function GameContainer({ onAdmin }) {
     setFeedback({ visible: false, esCorrecta: false, mensaje: '', dato: '' });
     setConfeti(false);
     setColorIndex(0);
+    setTiempoTotal(0); // Reset tiempo
     setPantalla('inicio');
     setLoading(false);
   };

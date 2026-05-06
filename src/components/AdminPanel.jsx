@@ -186,40 +186,68 @@ export default function AdminPanel({ onVolver }) {
               </div>
             </div>
 
-            {/* Lista de últimos participanes */}
-            <h4 className="text-lg font-black mb-4 flex items-center gap-2 px-2">
-              🏆 Últimos Guardianes del Agua
-            </h4>
-            <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-white/10 text-xs font-black uppercase text-white/50">
-                  <tr>
-                    <th className="p-4">Nombre</th>
-                    <th className="p-4">Aciertos</th>
-                    <th className="p-4">Fecha</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
-                  {stats.recientes.map((r, i) => (
-                    <tr key={r.id} className="border-t border-white/5 hover:bg-white/5 transition-all">
-                      <td className="p-4 font-bold">{r.nombre}</td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full font-black text-xs ${r.puntaje === r.total ? 'bg-yellow-400/20 text-yellow-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
-                          {r.puntaje}/{r.total}
-                        </span>
-                      </td>
-                      <td className="p-4 text-white/40 font-bold">
-                        {new Date(r.fecha).toLocaleDateString()} {new Date(r.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                    </tr>
+            {/* RANKING TOP 10 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              <div className="lg:col-span-1">
+                <h4 className="text-lg font-black mb-4 flex items-center gap-2 px-2 text-yellow-400">
+                  🏆 Ranking Top 10
+                </h4>
+                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                  {stats.ranking?.map((r, i) => (
+                    <div key={r.id} className="flex items-center gap-4 p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-all">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${i === 0 ? 'bg-yellow-400 text-slate-900' : i === 1 ? 'bg-slate-300 text-slate-900' : i === 2 ? 'bg-orange-500 text-white' : 'bg-white/10 text-white'}`}>
+                        #{i + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold truncate text-sm">{r.nombre}</p>
+                        <p className="text-[10px] text-white/40 font-bold uppercase">{r.tiempo_total || 0} segundos</p>
+                      </div>
+                      <div className="text-cyan-400 font-black text-sm">
+                        {r.puntaje}/{r.total}
+                      </div>
+                    </div>
                   ))}
-                  {stats.recientes.length === 0 && (
-                    <tr>
-                      <td colSpan="3" className="p-12 text-center text-white/20 font-bold italic">Aún no hay participaciones registradas</td>
-                    </tr>
+                  {(!stats.ranking || stats.ranking.length === 0) && (
+                    <div className="p-8 text-center text-white/20 italic text-sm">No hay datos aún</div>
                   )}
-                </tbody>
-              </table>
+                </div>
+              </div>
+
+              {/* LISTA COMPLETA RECIENTES */}
+              <div className="lg:col-span-2">
+                <h4 className="text-lg font-black mb-4 flex items-center gap-2 px-2">
+                  🕒 Últimas Participaciones
+                </h4>
+                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-white/10 text-[10px] font-black uppercase text-white/50">
+                      <tr>
+                        <th className="p-4">Nombre</th>
+                        <th className="p-4">Puntos</th>
+                        <th className="p-4">Tiempo</th>
+                        <th className="p-4">Fecha</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-xs">
+                      {stats.recientes.map((r, i) => (
+                        <tr key={r.id} className="border-t border-white/5 hover:bg-white/5 transition-all">
+                          <td className="p-4 font-bold">{r.nombre}</td>
+                          <td className="p-4">
+                            <span className="bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-black">
+                              {r.puntaje}/{r.total}
+                            </span>
+                          </td>
+                          <td className="p-4 text-white/60">{r.tiempo_total || 0}s</td>
+                          <td className="p-4 text-white/30 font-bold">
+                            {new Date(r.fecha).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         )}

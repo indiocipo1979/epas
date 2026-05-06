@@ -151,10 +151,17 @@ export async function getEstadisticas() {
     const sumaPuntajes = data.reduce((acc, p) => acc + (p.puntaje / p.total), 0);
     const promedio = total > 0 ? Math.round((sumaPuntajes / total) * 100) : 0;
 
+    // Lógica de Ranking: Mejor puntaje, y en empate, menor tiempo
+    const ranking = [...data].sort((a, b) => {
+      if (b.puntaje !== a.puntaje) return b.puntaje - a.puntaje;
+      return (a.tiempo_total || 999) - (b.tiempo_total || 999);
+    }).slice(0, 10);
+
     return {
       total,
       promedio,
-      recientes: data.slice(0, 50) // Últimos 50
+      ranking,
+      recientes: data.slice(0, 50) 
     };
   } catch (e) {
     console.error('Error al obtener estadísticas:', e);
