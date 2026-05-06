@@ -147,6 +147,8 @@ export default function GameContainer({ onAdmin }) {
   const [feedback, setFeedback]               = useState({ visible: false, esCorrecta: false, mensaje: '', dato: '' });
   const [confeti, setConfeti]                 = useState(false);
   const [colorIndex, setColorIndex]           = useState(0);
+  const [timeLeft, setTimeLeft]               = useState(10); // Tiempo inicial
+  const [timerActive, setTimerActive]         = useState(false);
 
   // ── Cargar preguntas al iniciar y escuchar cambios ──
   useEffect(() => {
@@ -195,6 +197,21 @@ export default function GameContainer({ onAdmin }) {
     return () => clearTimeout(timer);
   }, []);
 
+  // ── Lógica del Temporizador ──
+  useEffect(() => {
+    let interval;
+    if (timerActive && timeLeft > 0 && pantalla === 'juego' && !feedback.visible) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0 && timerActive && pantalla === 'juego' && !feedback.visible) {
+      // TIEMPO AGOTADO
+      setTimerActive(false);
+      handleRespuesta(-1); // -1 indica que no se seleccionó nada (incorrecta)
+    }
+    return () => clearInterval(interval);
+  }, [timerActive, timeLeft, pantalla, feedback.visible]);
+
   const bgColor  = BG_COLORS[colorIndex % BG_COLORS.length];
 
   // ── Respuesta del usuario ──
@@ -231,6 +248,8 @@ export default function GameContainer({ onAdmin }) {
       } else {
         setIndicePregunta(siguiente);
         setColorIndex(prev => prev + 1); // Rotar color de fondo
+        setTimeLeft(10);
+        setTimerActive(true);
       }
     }, 200);
   };
@@ -399,6 +418,8 @@ export default function GameContainer({ onAdmin }) {
                   }
                   setPantalla('juego');
                   setColorIndex(0);
+                  setTimeLeft(10);
+                  setTimerActive(true);
                 }}
                 style={{
                   background: '#FFD700',
@@ -456,12 +477,22 @@ export default function GameContainer({ onAdmin }) {
               {/* Panel derecho: pregunta */}
               <div className="flex-1 flex flex-col p-4 md:p-6 min-w-0">
 
-                {/* Header con barra */}
+                {/* Header con barra y RELOJ */}
                 <div className="glass-card p-4 mb-4 flex-shrink-0">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-white font-black text-sm md:text-base">
-                      💧 Barra de Agua
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-white font-black text-sm md:text-base">
+                        💧 Barra de Agua
+                      </span>
+                      {/* RELOJ VISUAL */}
+                      <motion.div 
+                        className={`flex items-center gap-1 px-3 py-1 rounded-full font-black text-sm ${timeLeft <= 3 ? 'bg-red-500 text-white animate-pulse' : 'bg-white/20 text-white'}`}
+                        animate={timeLeft <= 3 ? { scale: [1, 1.1, 1] } : {}}
+                        transition={{ repeat: Infinity, duration: 0.5 }}
+                      >
+                        ⏱️ {timeLeft}s
+                      </motion.div>
+                    </div>
                     <span className="text-white/80 font-bold text-sm">
                       Misión Gota · EPAS
                     </span>
