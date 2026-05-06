@@ -229,7 +229,21 @@ export default function GameContainer({ onAdmin }) {
     );
   }
 
-  const preguntaActual = preguntas[indicePregunta];
+  // Si después de cargar no hay preguntas (caso extremo), usamos las default
+  const listaPreguntas = preguntas.length > 0 ? preguntas : [];
+
+  const preguntaActual = listaPreguntas[indicePregunta];
+
+  if (!preguntaActual && pantalla === 'juego') {
+    return (
+      <div className="fixed inset-0 bg-epas-sky flex flex-col items-center justify-center p-6 text-center">
+        <h2 className="text-white text-2xl font-black mb-4">¡Ups! No pudimos cargar las preguntas.</h2>
+        <button onClick={() => window.location.reload()} className="bg-white text-epas-sky px-8 py-3 rounded-full font-bold">
+          Reintentar
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex flex-col font-game overflow-hidden">

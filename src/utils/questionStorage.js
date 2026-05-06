@@ -14,14 +14,19 @@ export async function getPreguntas() {
 
   if (error) {
     console.error('Error cargando preguntas de Supabase:', error);
-    return [];
+    return PREGUNTAS_DEFAULT; // Plan B: cargar las locales
   }
 
-  // Si la base está vacía, cargamos las predeterminadas la primera vez
-  if (data.length === 0) {
-    console.log('Base vacía, cargando predeterminadas...');
-    await resetPreguntas();
-    return getPreguntas();
+  // Si la base está vacía, intentamos cargar las predeterminadas
+  if (!data || data.length === 0) {
+    console.log('Base vacía, intentando inicializar...');
+    try {
+      await resetPreguntas();
+      const { data: retryData } = await supabase.from('preguntas').select('*').order('orden', { ascending: true });
+      return retryData || PREGUNTAS_DEFAULT;
+    } catch (e) {
+      return PREGUNTAS_DEFAULT;
+    }
   }
 
   return data;
