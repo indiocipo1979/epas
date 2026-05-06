@@ -3,7 +3,7 @@
 // Permite: ver, crear, editar, eliminar y reordenar preguntas.
 // Diseño profesional con identidad EPAS.
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   getPreguntas,

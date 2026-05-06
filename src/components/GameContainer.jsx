@@ -3,7 +3,7 @@
 // Pantalla inicio → Preguntas → Feedback → Pantalla final
 // Rediseñado con la identidad visual oficial EPAS va a la Escuela
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EnergyBar from './EnergyBar';
 import QuestionCard from './QuestionCard';
