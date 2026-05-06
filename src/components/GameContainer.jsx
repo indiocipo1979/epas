@@ -152,21 +152,28 @@ export default function GameContainer({ onAdmin }) {
   useEffect(() => {
     // 1. Carga inicial
     const cargar = async () => {
-      const data = await getPreguntas();
-      setPreguntas(data);
-      setLoading(false);
+      try {
+        const data = await getPreguntas();
+        setPreguntas(data || []);
+      } catch (e) {
+        console.error("Fallo carga inicial:", e);
+      } finally {
+        setLoading(false);
+      }
     };
     cargar();
 
-    // 2. Escuchar cambios en tiempo real (impacto en todos)
-    const channel = supabase
-      .channel('cambios-preguntas')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'preguntas' }, () => {
-        cargar(); // Recargamos si algo cambia
-      })
-      .subscribe();
+    // 2. Escuchar cambios en tiempo real (solo si supabase está configurado)
+    if (supabase) {
+      const channel = supabase
+        .channel('cambios-preguntas')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'preguntas' }, () => {
+          cargar(); 
+        })
+        .subscribe();
 
-    return () => supabase.removeChannel(channel);
+      return () => supabase.removeChannel(channel);
+    }
   }, []);
 
   const bgColor  = BG_COLORS[colorIndex % BG_COLORS.length];
@@ -189,15 +196,17 @@ export default function GameContainer({ onAdmin }) {
     setTimeout(async () => {
       const siguiente = indicePregunta + 1;
       if (siguiente >= preguntas.length) {
-        // Al terminar, guardamos en la base de datos
-        try {
-          await supabase.from('participaciones').insert([{
-            nombre: nombre || 'Anónimo',
-            puntaje: correctas,
-            total: preguntas.length
-          }]);
-        } catch (e) {
-          console.error('Error guardando estadística:', e);
+        // Al terminar, guardamos en la base de datos (solo si existe supabase)
+        if (supabase) {
+          try {
+            await supabase.from('participaciones').insert([{
+              nombre: nombre || 'Anónimo',
+              puntaje: correctas,
+              total: preguntas.length
+            }]);
+          } catch (e) {
+            console.error('Error guardando estadística:', e);
+          }
         }
         setPantalla('final');
       } else {
