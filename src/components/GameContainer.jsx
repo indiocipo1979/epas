@@ -216,7 +216,9 @@ export default function GameContainer({ onAdmin }) {
 
   // ── Respuesta del usuario ──
   const handleRespuesta = (esCorrecta, dato) => {
-    if (esCorrecta) {
+    setTimerActive(false); // Detener el reloj apenas responde
+    
+    if (esCorrecta === true) {
       setCorrectas(prev => prev + 1);
       setConfeti(true);
       setTimeout(() => setConfeti(false), 3000);
