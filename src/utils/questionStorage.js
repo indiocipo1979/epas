@@ -145,7 +145,14 @@ export async function getEstadisticas() {
       .select('*')
       .order('fecha', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.warn('La tabla de participaciones puede no existir aún:', error);
+      return { total: 0, promedio: 0, ranking: [], recientes: [] };
+    }
+
+    if (!data || data.length === 0) {
+      return { total: 0, promedio: 0, ranking: [], recientes: [] };
+    }
 
     const total = data.length;
     const sumaPuntajes = data.reduce((acc, p) => acc + (p.puntaje / p.total), 0);
