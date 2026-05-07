@@ -147,7 +147,7 @@ export default function GameContainer({ onAdmin }) {
   const [feedback, setFeedback]               = useState({ visible: false, esCorrecta: false, mensaje: '', dato: '' });
   const [confeti, setConfeti]                 = useState(false);
   const [colorIndex, setColorIndex]           = useState(0);
-  const [timeLeft, setTimeLeft]               = useState(10); // Tiempo inicial
+  const [timeLeft, setTimeLeft]               = useState(15); // Tiempo inicial subido a 15
   const [timerActive, setTimerActive]         = useState(false);
   const [tiempoTotal, setTiempoTotal]         = useState(0); 
   const [timestampInicio, setTimestampInicio] = useState(null); // Para cálculo real
@@ -274,7 +274,7 @@ export default function GameContainer({ onAdmin }) {
       } else {
         setIndicePregunta(siguiente);
         setColorIndex(prev => prev + 1); // Rotar color de fondo
-        setTimeLeft(10);
+        setTimeLeft(15); // Reset a 15
         setTimerActive(true);
       }
     }, 200);
@@ -459,7 +459,7 @@ export default function GameContainer({ onAdmin }) {
                   setPantalla('juego');
                   setTimestampInicio(Date.now()); // Marcamos el inicio real
                   setColorIndex(0);
-                  setTimeLeft(10);
+                  setTimeLeft(15); // Iniciamos con 15
                   setTimerActive(true);
                 }}
                 style={{
@@ -523,9 +523,9 @@ export default function GameContainer({ onAdmin }) {
                   {/* Barra de Tiempo (Fusible) */}
                   <div className="absolute top-0 left-0 h-1.5 bg-white/10 w-full overflow-hidden">
                     <motion.div 
-                      className={`h-full ${timeLeft > 5 ? 'bg-green-400' : timeLeft > 2 ? 'bg-yellow-400' : 'bg-red-500'}`}
+                      className={`h-full ${timeLeft > 7 ? 'bg-green-400' : timeLeft > 3 ? 'bg-yellow-400' : 'bg-red-500'}`}
                       initial={{ width: '100%' }}
-                      animate={{ width: `${(timeLeft / 10) * 100}%` }}
+                      animate={{ width: `${(timeLeft / 15) * 100}%` }}
                       transition={{ duration: 1, ease: 'linear' }}
                     />
                   </div>
