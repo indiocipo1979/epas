@@ -41,11 +41,25 @@ export default function ImportModal({ onImport, onClose }) {
 
         paragraphs.forEach(p => {
           const text = p.innerText.trim();
-          if (!text) return;
+          if (!text || text.length < 2) return;
 
-          // Si el texto termina en ? o tiene formato de pregunta
-          if (text.includes('?') || text.length > 50) {
-            if (currentQ && currentQ.opciones.length >= 2) detected.push(currentQ);
+          // Patrones comunes
+          const startsWithOption = /^[a-zA-Z][\)\.\-]/.test(text) || text.startsWith('•');
+          const isQuestion = text.includes('?') || /^\d+[\.\)]/.test(text);
+
+          // LÓGICA DE DETECCIÓN
+          if (startsWithOption && currentQ) {
+            // Es una OPCIÓN (aunque sea larga)
+            const isBold = p.querySelector('strong') || p.querySelector('b');
+            currentQ.opciones.push(text);
+            if (isBold) {
+              currentQ.correcta = currentQ.opciones.length - 1;
+            }
+          } else if (isQuestion || text.length > 40) {
+            // Es una PREGUNTA o TÍTULO
+            if (currentQ && currentQ.opciones.length >= 2) {
+              detected.push(currentQ);
+            }
             currentQ = {
               pregunta: text,
               opciones: [],
@@ -53,8 +67,8 @@ export default function ImportModal({ onImport, onClose }) {
               emoji: '💧',
               dato: '¡Dato educativo por completar!'
             };
-          } else if (currentQ) {
-            // Es una opción
+          } else if (currentQ && currentQ.opciones.length < 4) {
+            // Es una opción sin formato A) B) pero que sigue a una pregunta
             const isBold = p.querySelector('strong') || p.querySelector('b');
             currentQ.opciones.push(text);
             if (isBold) {
@@ -63,7 +77,10 @@ export default function ImportModal({ onImport, onClose }) {
           }
         });
 
-        if (currentQ && currentQ.opciones.length >= 2) detected.push(currentQ);
+        // No olvidar la última
+        if (currentQ && currentQ.opciones.length >= 2) {
+          detected.push(currentQ);
+        }
         setPreview(detected);
       };
       reader.readAsArrayBuffer(file);
