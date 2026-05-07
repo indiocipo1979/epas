@@ -13,6 +13,7 @@ import {
   getEstadisticas,
 } from '../utils/questionStorage';
 import { PREGUNTAS as PREGUNTAS_DEFAULT } from '../data/questions';
+import ImportModal from './ImportModal';
 
 // ── Emojis disponibles ──
 const EMOJIS = ['🌊', '🚰', '🏔️', '🌵', '💧', '🏢', '🌱', '🔧', '🚿', '🤝', '🐟', '⭐', '🌍', '🧪', '🏠', '❄️', '☀️', '🌧️', '🏞️', '🐠'];
@@ -29,6 +30,7 @@ export default function AdminPanel({ onVolver }) {
   const [form, setForm] = useState({ ...PREGUNTA_VACIA });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
@@ -59,6 +61,23 @@ export default function AdminPanel({ onVolver }) {
 
   const handleNueva = () => { setForm({ ...PREGUNTA_VACIA }); setEditando('nueva'); };
   const handleEditar = (p) => { setForm({ ...p, opciones: [...p.opciones] }); setEditando(p.id); };
+
+  const handleImportarMasivo = async (nuevasPreguntas) => {
+    setShowImport(false);
+    setLoading(true);
+    try {
+      // Agregamos una por una (o podrías hacer un rpc en supabase para bulk)
+      for (const p of nuevasPreguntas) {
+        await addPregunta(p);
+      }
+      await fetchData();
+      showToast(`✨ Se importaron ${nuevasPreguntas.length} preguntas!`);
+    } catch (e) {
+      showToast('❌ Error en la importación masiva', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGuardar = async () => {
     if (!form.pregunta.trim()) return showToast('Escribí la pregunta', 'error');
@@ -125,6 +144,12 @@ export default function AdminPanel({ onVolver }) {
         </div>
 
         <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setShowImport(true)}
+            className="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-1.5 rounded-full text-xs font-black transition-all shadow-lg flex items-center gap-2"
+          >
+            📄 Importar Word
+          </button>
           <div className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-4 py-1.5 rounded-full text-xs font-black">
             📚 {preguntas.length} Preguntas
           </div>
@@ -327,6 +352,16 @@ export default function AdminPanel({ onVolver }) {
           </div>
         </div>
       )}
+
+      {/* MODAL IMPORTACIÓN */}
+      <AnimatePresence>
+        {showImport && (
+          <ImportModal 
+            onClose={() => setShowImport(false)} 
+            onImport={handleImportarMasivo} 
+          />
+        )}
+      </AnimatePresence>
 
       {/* TOAST */}
       <AnimatePresence>
