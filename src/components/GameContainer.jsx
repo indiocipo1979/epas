@@ -156,6 +156,7 @@ export default function GameContainer({ onAdmin }) {
   // ── Sonidos ──
   const [playCorrect] = useSound('/assets/sounds/correct.mp3', { volume: 0.7 });
   const [playIncorrect] = useSound('/assets/sounds/incorrect.mp3', { volume: 0.8 });
+  const [playTick] = useSound('/assets/sounds/tick.ogg', { volume: 0.5 });
 
   // ── Cargar preguntas al iniciar y escuchar cambios ──
   useEffect(() => {
@@ -221,6 +222,13 @@ export default function GameContainer({ onAdmin }) {
     }
     return () => clearInterval(interval);
   }, [timerActive, timeLeft, pantalla, feedback.visible]);
+
+  // ── Alerta sonora de tiempo crítico ──
+  useEffect(() => {
+    if (timerActive && timeLeft <= 5 && timeLeft > 0 && pantalla === 'juego' && !feedback.visible) {
+      playTick();
+    }
+  }, [timeLeft, timerActive, pantalla, feedback.visible, playTick]);
 
   const bgColor  = BG_COLORS[colorIndex % BG_COLORS.length];
 
