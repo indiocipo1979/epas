@@ -132,6 +132,71 @@ export const PREGUNTAS = [
     correcta: 1,
     dato: "¡Todos podemos ser Guardianes del Agua! Pequeñas acciones como cerrar la canilla hacen una gran diferencia."
   },
+  {
+    id: 11,
+    emoji: "🧠",
+    pregunta: "¿Por qué es tan importante tomar agua para nuestro cerebro?",
+    opciones: [
+      "Porque el cerebro es 75% agua y sin ella nos duele la cabeza.",
+      "Para que el pelo nos crezca mucho más rápido.",
+      "Porque el agua le da superpoderes de memoria.",
+      "Para poder pensar en nuevos colores."
+    ],
+    correcta: 0,
+    dato: "¡El cerebro es 75% agua! Por eso una pequeña deshidratación puede causar dolor de cabeza y mareos."
+  },
+  {
+    id: 12,
+    emoji: "🫁",
+    pregunta: "¿Qué pasaría con nuestros pulmones si no tuvieran agua y se secaran?",
+    opciones: [
+      "Respiraríamos el doble de rápido.",
+      "No podríamos respirar.",
+      "Podríamos respirar bajo el agua como los peces.",
+      "Se inflarían como globos de cumpleaños."
+    ],
+    correcta: 1,
+    dato: "¡Si nuestros pulmones no estuvieran siempre húmedos, no podríamos respirar! Nuestro cuerpo es casi 2/3 agua."
+  },
+  {
+    id: 13,
+    emoji: "💧",
+    pregunta: "¿Cómo debe ser el agua potable (la que es segura para tomar)?",
+    opciones: [
+      "Debe ser transparente, sin olor, sin sabor raro y tener controles.",
+      "Debe ser de color verde brillante y oler a menta.",
+      "Puede tener basuritas flotando si viene del río.",
+      "Tiene que tener mucho gas como las gaseosas."
+    ],
+    correcta: 0,
+    dato: "¡El agua potable debe ser prácticamente incolora, inodora, limpia y someterse a tratamientos para que no tenga bacterias!"
+  },
+  {
+    id: 14,
+    emoji: "🦠",
+    pregunta: "¿Qué pasa si tomamos agua 'no segura' (que no fue tratada por el EPAS)?",
+    opciones: [
+      "No pasa nada, toda el agua del mundo se puede tomar.",
+      "Nos da muchísima más fuerza y energía para jugar.",
+      "Nos puede producir enfermedades y dolor de panza.",
+      "Nos cambia el color de los ojos a celeste."
+    ],
+    correcta: 2,
+    dato: "¡El agua no segura proviene de fuentes no controladas y puede contener bacterias o sustancias que nos hacen mal!"
+  },
+  {
+    id: 15,
+    emoji: "🏞️",
+    pregunta: "¿Cuál es una de las principales tomas de agua que abastece a la ciudad de Neuquén?",
+    opciones: [
+      "El Océano Atlántico.",
+      "El Río de la Plata.",
+      "Una montaña de nieve en el norte.",
+      "El Lago Mari Menuco."
+    ],
+    correcta: 3,
+    dato: "¡La toma del Lago Mari Menuco es clave para el Sistema de Agua Potable de la ciudad de Neuquén!"
+  }
 ];
 
 // ─── Mensajes de feedback positivo ───
