@@ -49,7 +49,7 @@ export default function ImportModal({ onImport, onClose }) {
 
           // LÓGICA DE DETECCIÓN
           if (startsWithOption && currentQ) {
-            // Es una OPCIÓN (aunque sea larga)
+            // Es una OPCIÓN
             const isBold = p.querySelector('strong') || p.querySelector('b');
             currentQ.opciones.push(text);
             if (isBold) {
@@ -65,14 +65,19 @@ export default function ImportModal({ onImport, onClose }) {
               opciones: [],
               correcta: 0,
               emoji: '💧',
-              dato: '¡Dato educativo por completar!'
+              dato: '' // Lo llenaremos después
             };
-          } else if (currentQ && currentQ.opciones.length < 4) {
-            // Es una opción sin formato A) B) pero que sigue a una pregunta
-            const isBold = p.querySelector('strong') || p.querySelector('b');
-            currentQ.opciones.push(text);
-            if (isBold) {
-              currentQ.correcta = currentQ.opciones.length - 1;
+          } else if (currentQ) {
+            // Si ya tenemos opciones y llega un texto "suelto", es el DATO EDUCATIVO
+            if (currentQ.opciones.length >= 2 && !currentQ.dato) {
+              currentQ.dato = text;
+            } else if (currentQ.opciones.length < 4) {
+              // Si aún no tenemos suficientes opciones, lo tomamos como opción
+              const isBold = p.querySelector('strong') || p.querySelector('b');
+              currentQ.opciones.push(text);
+              if (isBold) {
+                currentQ.correcta = currentQ.opciones.length - 1;
+              }
             }
           }
         });
