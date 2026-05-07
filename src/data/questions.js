@@ -196,6 +196,84 @@ export const PREGUNTAS = [
     ],
     correcta: 3,
     dato: "¡La toma del Lago Mari Menuco es clave para el Sistema de Agua Potable de la ciudad de Neuquén!"
+  },
+  {
+    id: 16,
+    emoji: "🍔",
+    pregunta: "¿Qué alimento creés que 'gastó' más agua para llegar a tu mesa?",
+    opciones: [
+      "Una manzana",
+      "Una hamburguesa de carne",
+      "Un tomate",
+      "Una lechuga"
+    ],
+    correcta: 1,
+    dato: "¡La producción de carne requiere miles de litros de agua comparado con las frutas y verduras!"
+  },
+  {
+    id: 17,
+    emoji: "💧",
+    pregunta: "Una canilla que gotea (una gota por segundo) parece poco, pero al mes desperdicia:",
+    opciones: [
+      "10 litros",
+      "100 litros",
+      "Más de 1000 litros",
+      "5 litros"
+    ],
+    correcta: 2,
+    dato: "¡Una sola gota por segundo suma más de 1000 litros al mes! ¡Cerrá bien las canillas!"
+  },
+  {
+    id: 18,
+    emoji: "🚗",
+    pregunta: "¿Cuál es la forma más ahorradora de lavar el auto de la familia?",
+    opciones: [
+      "Con la manguera abierta",
+      "Con un balde",
+      "En el río",
+      "Dejando que llueva"
+    ],
+    correcta: 1,
+    dato: "Lavar el auto con balde gasta unos 50 litros, mientras que con manguera abierta ¡podés gastar más de 500!"
+  },
+  {
+    id: 19,
+    emoji: "🌍",
+    pregunta: "Si toda el agua del mundo estuviera en un balde de 10 litros, ¿cuánta sería agua dulce que podemos beber fácilmente?",
+    opciones: [
+      "Una cucharada",
+      "Medio balde",
+      "Un vaso",
+      "Casi todo el balde"
+    ],
+    correcta: 0,
+    dato: "¡Solo una cucharada! La mayor parte del agua dulce está congelada en los polos o muy profunda bajo tierra."
+  },
+  {
+    id: 20,
+    emoji: "🍽️",
+    pregunta: "Si lavás los platos a mano con la canilla abierta, gastás 100 litros. ¿Cuánto gasta un lavavajillas eficiente?",
+    opciones: [
+      "200 litros",
+      "10 a 15 litros",
+      "50 litros",
+      "500 litros"
+    ],
+    correcta: 1,
+    dato: "Los lavavajillas modernos reutilizan el agua y son mucho más eficientes que dejar la canilla abierta."
+  },
+  {
+    id: 21,
+    emoji: "🤝",
+    pregunta: "¿Cuál es la mejor forma de ayudar hoy mismo?",
+    opciones: [
+      "Gastar mucha agua",
+      "Dejar las canillas abiertas",
+      "Cerrar la canilla al lavarse los dientes",
+      "Jugar con mangueras"
+    ],
+    correcta: 2,
+    dato: "¡Pequeñas acciones todos los días nos convierten en verdaderos Guardianes del Agua!"
   }
 ];
 
