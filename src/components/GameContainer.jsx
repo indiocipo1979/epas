@@ -16,6 +16,7 @@ import logoNeuquen from '../assets/logo-neuquen.png';
 import { MENSAJES_CORRECTA, MENSAJES_INCORRECTA, PREGUNTAS as PREGUNTAS_DEFAULT } from '../data/questions';
 import { getPreguntas } from '../utils/questionStorage';
 import { supabase } from '../lib/supabase';
+import useSound from 'use-sound';
 
 // ─── Paleta de fondos rotativos por pregunta (celeste / magenta / naranja) ───
 const BG_COLORS = [
@@ -152,6 +153,11 @@ export default function GameContainer({ onAdmin }) {
   const [tiempoTotal, setTiempoTotal]         = useState(0); 
   const [timestampInicio, setTimestampInicio] = useState(null); // Para cálculo real
 
+  // ── Sonidos ──
+  const [playCorrect] = useSound('/assets/sounds/correct.mp3', { volume: 0.7 });
+  const [playIncorrect] = useSound('/assets/sounds/incorrect.mp3', { volume: 0.6 });
+  const [playBgm, { stop: stopBgm }] = useSound('/assets/sounds/bgm.mp3', { volume: 0.15, loop: true });
+
   // ── Cargar preguntas al iniciar y escuchar cambios ──
   useEffect(() => {
     // 1. Temporizador de seguridad (fuerza el inicio en 2.5 seg pase lo que pase)
@@ -224,9 +230,12 @@ export default function GameContainer({ onAdmin }) {
     setTimerActive(false); // Detener el reloj apenas responde
     
     if (esCorrecta === true) {
+      playCorrect();
       setCorrectas(prev => prev + 1);
       setConfeti(true);
       setTimeout(() => setConfeti(false), 3000);
+    } else {
+      playIncorrect();
     }
     
     // Si esCorrecta es -1, significa tiempo agotado
@@ -285,6 +294,7 @@ export default function GameContainer({ onAdmin }) {
 
   // ── Reiniciar ──
   const handleReiniciar = async () => {
+    stopBgm();
     setLoading(true);
     const data = await getPreguntas(); 
     setPreguntas(data);
@@ -459,6 +469,8 @@ export default function GameContainer({ onAdmin }) {
                     alert('¡Por favor, ingresá tu nombre para recibir tu diploma!');
                     return;
                   }
+                  stopBgm();
+                  playBgm();
                   setPantalla('juego');
                   setTimestampInicio(Date.now()); // Marcamos el inicio real
                   setColorIndex(0);
