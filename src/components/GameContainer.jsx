@@ -162,15 +162,18 @@ export default function GameContainer({ onAdmin }) {
     // 2. Carga inicial
     const cargar = async () => {
       try {
-        const data = await getPreguntas();
-        if (data && data.length > 0) {
-          setPreguntas(data);
-        } else {
-          setPreguntas(PREGUNTAS_DEFAULT);
-        }
+        let data = await getPreguntas();
+        if (!data || data.length === 0) data = [...PREGUNTAS_DEFAULT];
+
+        // MEZCLA ALEATORIA (Fisher-Yates Shuffle)
+        const mezcladas = [...data].sort(() => Math.random() - 0.5);
+        
+        // SELECCIONAR SOLO 10
+        setPreguntas(mezcladas.slice(0, 10));
       } catch (e) {
         console.error("Fallo carga:", e);
-        setPreguntas(PREGUNTAS_DEFAULT);
+        const mezcladas = [...PREGUNTAS_DEFAULT].sort(() => Math.random() - 0.5);
+        setPreguntas(mezcladas.slice(0, 10));
       } finally {
         setLoading(false);
         clearTimeout(timer);
