@@ -11,6 +11,7 @@ export default function QuestionCard({
   indicePregunta,   // Número de pregunta actual (0-based)
   total,            // Total de preguntas
   onRespuesta,      // Callback cuando el usuario elige una respuesta
+  onPlaySound,      // Callback para reproducir sonido inmediato
 }) {
   // ── Estado local: qué opción eligió el usuario ──
   const [elegida, setElegida] = useState(null);
@@ -21,6 +22,9 @@ export default function QuestionCard({
     setElegida(indice);
 
     const esCorrecta = indice === pregunta.correcta;
+    if (onPlaySound) {
+      onPlaySound(esCorrecta);
+    }
 
     // Esperamos un momento para que se vea la animación antes de continuar
     setTimeout(() => {

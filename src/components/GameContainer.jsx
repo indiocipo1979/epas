@@ -225,20 +225,28 @@ export default function GameContainer({ onAdmin }) {
   const bgColor  = BG_COLORS[colorIndex % BG_COLORS.length];
 
   // ── Respuesta del usuario ──
+  const triggerSound = (esCorrecta) => {
+    if (esCorrecta === true) {
+      playCorrect();
+    } else {
+      playIncorrect();
+    }
+  };
+
   const handleRespuesta = (esCorrecta, dato) => {
     setTimerActive(false); // Detener el reloj apenas responde
     
     if (esCorrecta === true) {
-      playCorrect();
       setCorrectas(prev => prev + 1);
       setConfeti(true);
       setTimeout(() => setConfeti(false), 3000);
-    } else {
-      playIncorrect();
     }
     
     // Si esCorrecta es -1, significa tiempo agotado
     const esTiempoAgotado = esCorrecta === -1;
+    if (esTiempoAgotado) {
+      playIncorrect(); // Play sound if timeout
+    }
     const mensajes = esCorrecta === true ? MENSAJES_CORRECTA : MENSAJES_INCORRECTA;
     let mensaje = mensajes[Math.floor(Math.random() * mensajes.length)];
     
@@ -575,6 +583,7 @@ export default function GameContainer({ onAdmin }) {
                     indicePregunta={indicePregunta}
                     total={qList.length}
                     onRespuesta={handleRespuesta}
+                    onPlaySound={triggerSound}
                   />
                 </div>
               </div>
