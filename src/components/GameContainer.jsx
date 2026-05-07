@@ -149,7 +149,8 @@ export default function GameContainer({ onAdmin }) {
   const [colorIndex, setColorIndex]           = useState(0);
   const [timeLeft, setTimeLeft]               = useState(10); // Tiempo inicial
   const [timerActive, setTimerActive]         = useState(false);
-  const [tiempoTotal, setTiempoTotal]         = useState(0); // Acumulador total
+  const [tiempoTotal, setTiempoTotal]         = useState(0); 
+  const [timestampInicio, setTimestampInicio] = useState(null); // Para cálculo real
 
   // ── Cargar preguntas al iniciar y escuchar cambios ──
   useEffect(() => {
@@ -204,7 +205,6 @@ export default function GameContainer({ onAdmin }) {
     if (timerActive && timeLeft > 0 && pantalla === 'juego' && !feedback.visible) {
       interval = setInterval(() => {
         setTimeLeft(prev => prev - 1);
-        setTiempoTotal(prev => prev + 1); // Sumar al total cada segundo
       }, 1000);
     } else if (timeLeft === 0 && timerActive && pantalla === 'juego' && !feedback.visible) {
       // TIEMPO AGOTADO
@@ -244,14 +244,16 @@ export default function GameContainer({ onAdmin }) {
     setTimeout(async () => {
       const siguiente = indicePregunta + 1;
       if (siguiente >= qList.length) {
-        // Al terminar, guardamos en la base de datos (solo si existe supabase)
+        // Cálculo final de tiempo real en segundos
+        const segundosTotales = Math.round((Date.now() - timestampInicio) / 1000);
+        
         if (supabase) {
-          console.log('Intentando guardar participacion...', { nombre, correctas, tiempoTotal });
+          console.log('Intentando guardar participacion...', { nombre, correctas, segundosTotales });
           const { error } = await supabase.from('participaciones').insert([{
             nombre: nombre || 'Anónimo',
             puntaje: correctas,
             total: qList.length,
-            tiempo_total: tiempoTotal
+            tiempo_total: segundosTotales
           }]);
           
           if (error) {
@@ -455,6 +457,7 @@ export default function GameContainer({ onAdmin }) {
                     return;
                   }
                   setPantalla('juego');
+                  setTimestampInicio(Date.now()); // Marcamos el inicio real
                   setColorIndex(0);
                   setTimeLeft(10);
                   setTimerActive(true);
