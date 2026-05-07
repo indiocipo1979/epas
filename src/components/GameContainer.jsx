@@ -155,8 +155,7 @@ export default function GameContainer({ onAdmin }) {
 
   // ── Sonidos ──
   const [playCorrect] = useSound('/assets/sounds/correct.mp3', { volume: 0.7 });
-  const [playIncorrect] = useSound('/assets/sounds/incorrect.mp3', { volume: 0.6 });
-  const [playBgm, { stop: stopBgm }] = useSound('/assets/sounds/bgm.mp3', { volume: 0.15, loop: true });
+  const [playIncorrect] = useSound('/assets/sounds/incorrect.mp3', { volume: 0.8 });
 
   // ── Cargar preguntas al iniciar y escuchar cambios ──
   useEffect(() => {
@@ -294,7 +293,6 @@ export default function GameContainer({ onAdmin }) {
 
   // ── Reiniciar ──
   const handleReiniciar = async () => {
-    stopBgm();
     setLoading(true);
     const data = await getPreguntas(); 
     setPreguntas(data);
@@ -469,8 +467,6 @@ export default function GameContainer({ onAdmin }) {
                     alert('¡Por favor, ingresá tu nombre para recibir tu diploma!');
                     return;
                   }
-                  stopBgm();
-                  playBgm();
                   setPantalla('juego');
                   setTimestampInicio(Date.now()); // Marcamos el inicio real
                   setColorIndex(0);
