@@ -5,6 +5,7 @@ export const PREGUNTAS = [
   {
     id: 1,
     emoji: "🌊",
+    tema: "Ríos y Geografía",
     pregunta: "¿Cuál es el río que nace en el lago Nahuel Huapi y abastece de agua a gran parte de la región?",
     opciones: [
       "Río Limay",
@@ -18,6 +19,7 @@ export const PREGUNTAS = [
   {
     id: 2,
     emoji: "🚰",
+    tema: "Cuidado en Casa",
     pregunta: "¿Cuántos litros de agua se desperdician si dejás el grifo abierto mientras te lavás los dientes?",
     opciones: [
       "Solo unas gotas",
@@ -31,6 +33,7 @@ export const PREGUNTAS = [
   {
     id: 3,
     emoji: "🏔️",
+    tema: "Ríos y Geografía",
     pregunta: "¿Qué dos ríos se unen para formar el Río Negro, uno de los más importantes de la Patagonia?",
     opciones: [
       "Río Limay y Río Colorado",
@@ -44,6 +47,7 @@ export const PREGUNTAS = [
   {
     id: 4,
     emoji: "🌵",
+    tema: "Ríos y Geografía",
     pregunta: "¿Por qué se dice que Neuquén está en una zona árida o semiárida?",
     opciones: [
       "Porque hace mucho frío todo el año",
@@ -57,6 +61,7 @@ export const PREGUNTAS = [
   {
     id: 5,
     emoji: "💧",
+    tema: "Curiosidades",
     pregunta: "¿Qué porcentaje del agua de la Tierra es agua dulce que podemos tomar?",
     opciones: [
       "El 50%",
@@ -70,6 +75,7 @@ export const PREGUNTAS = [
   {
     id: 6,
     emoji: "🏢",
+    tema: "EPAS y Neuquén",
     pregunta: "¿Cuál es el nombre de la empresa que provee agua potable en la provincia de Neuquén?",
     opciones: [
       "EPEN",
@@ -83,6 +89,7 @@ export const PREGUNTAS = [
   {
     id: 7,
     emoji: "🌱",
+    tema: "Cuidado en Casa",
     pregunta: "¿Cuál es la mejor forma de regar las plantas para ahorrar agua?",
     opciones: [
       "Con manguera al mediodía cuando hay más sol",
@@ -96,6 +103,7 @@ export const PREGUNTAS = [
   {
     id: 8,
     emoji: "🔧",
+    tema: "Cuidado en Casa",
     pregunta: "¿Qué debemos hacer si vemos una canilla que gotea en casa?",
     opciones: [
       "Ignorarla, es solo una gotita",
@@ -109,6 +117,7 @@ export const PREGUNTAS = [
   {
     id: 9,
     emoji: "🚿",
+    tema: "Cuidado en Casa",
     pregunta: "¿Qué acción ahorra más agua al bañarse?",
     opciones: [
       "Bañarse en bañera llena todos los días",
@@ -122,6 +131,7 @@ export const PREGUNTAS = [
   {
     id: 10,
     emoji: "🤝",
+    tema: "Curiosidades",
     pregunta: "¿Qué podés hacer VOS para ser un verdadero Guardián del Agua?",
     opciones: [
       "Decirle a tus amigos que el agua es infinita",
@@ -135,6 +145,7 @@ export const PREGUNTAS = [
   {
     id: 11,
     emoji: "🧠",
+    tema: "Salud y Cuerpo",
     pregunta: "¿Por qué es tan importante tomar agua para nuestro cerebro?",
     opciones: [
       "Porque el cerebro es 75% agua y sin ella nos duele la cabeza.",
@@ -148,6 +159,7 @@ export const PREGUNTAS = [
   {
     id: 12,
     emoji: "🫁",
+    tema: "Salud y Cuerpo",
     pregunta: "¿Qué pasaría con nuestros pulmones si no tuvieran agua y se secaran?",
     opciones: [
       "Respiraríamos el doble de rápido.",
@@ -161,6 +173,7 @@ export const PREGUNTAS = [
   {
     id: 13,
     emoji: "💧",
+    tema: "EPAS y Neuquén",
     pregunta: "¿Cómo debe ser el agua potable (la que es segura para tomar)?",
     opciones: [
       "Debe ser transparente, sin olor, sin sabor raro y tener controles.",
@@ -174,6 +187,7 @@ export const PREGUNTAS = [
   {
     id: 14,
     emoji: "🦠",
+    tema: "Salud y Cuerpo",
     pregunta: "¿Qué pasa si tomamos agua 'no segura' (que no fue tratada por el EPAS)?",
     opciones: [
       "No pasa nada, toda el agua del mundo se puede tomar.",
@@ -187,6 +201,7 @@ export const PREGUNTAS = [
   {
     id: 15,
     emoji: "🏞️",
+    tema: "EPAS y Neuquén",
     pregunta: "¿Cuál es una de las principales tomas de agua que abastece a la ciudad de Neuquén?",
     opciones: [
       "El Océano Atlántico.",
@@ -200,6 +215,7 @@ export const PREGUNTAS = [
   {
     id: 16,
     emoji: "🍔",
+    tema: "Curiosidades",
     pregunta: "¿Qué alimento creés que 'gastó' más agua para llegar a tu mesa?",
     opciones: [
       "Una manzana",
@@ -213,6 +229,7 @@ export const PREGUNTAS = [
   {
     id: 17,
     emoji: "💧",
+    tema: "Cuidado en Casa",
     pregunta: "Una canilla que gotea (una gota por segundo) parece poco, pero al mes desperdicia:",
     opciones: [
       "10 litros",
@@ -226,6 +243,7 @@ export const PREGUNTAS = [
   {
     id: 18,
     emoji: "🚗",
+    tema: "Cuidado en Casa",
     pregunta: "¿Cuál es la forma más ahorradora de lavar el auto de la familia?",
     opciones: [
       "Con la manguera abierta",
@@ -239,6 +257,7 @@ export const PREGUNTAS = [
   {
     id: 19,
     emoji: "🌍",
+    tema: "Curiosidades",
     pregunta: "Si toda el agua del mundo estuviera en un balde de 10 litros, ¿cuánta sería agua dulce que podemos beber fácilmente?",
     opciones: [
       "Una cucharada",
@@ -252,6 +271,7 @@ export const PREGUNTAS = [
   {
     id: 20,
     emoji: "🍽️",
+    tema: "Cuidado en Casa",
     pregunta: "Si lavás los platos a mano con la canilla abierta, gastás 100 litros. ¿Cuánto gasta un lavavajillas eficiente?",
     opciones: [
       "200 litros",
@@ -265,6 +285,7 @@ export const PREGUNTAS = [
   {
     id: 21,
     emoji: "🤝",
+    tema: "Curiosidades",
     pregunta: "¿Cuál es la mejor forma de ayudar hoy mismo?",
     opciones: [
       "Gastar mucha agua",

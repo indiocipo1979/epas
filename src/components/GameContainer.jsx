@@ -17,6 +17,7 @@ import { MENSAJES_CORRECTA, MENSAJES_INCORRECTA, PREGUNTAS as PREGUNTAS_DEFAULT 
 import { getPreguntas } from '../utils/questionStorage';
 import { supabase } from '../lib/supabase';
 import useSound from 'use-sound';
+import RouletteGameMode from './RouletteGameMode';
 
 // ─── Paleta de fondos rotativos por pregunta (celeste / magenta / naranja) ───
 const BG_COLORS = [
@@ -208,14 +209,14 @@ export default function GameContainer({ onAdmin }) {
     return () => clearTimeout(timer);
   }, []);
 
-  // ── Lógica del Temporizador ──
+  // ── Lógica del Temporizador (Solo Clásico) ──
   useEffect(() => {
     let interval;
-    if (timerActive && timeLeft > 0 && pantalla === 'juego' && !feedback.visible) {
+    if (timerActive && timeLeft > 0 && pantalla === 'juego_clasico' && !feedback.visible) {
       interval = setInterval(() => {
         setTimeLeft(prev => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0 && timerActive && pantalla === 'juego' && !feedback.visible) {
+    } else if (timeLeft === 0 && timerActive && pantalla === 'juego_clasico' && !feedback.visible) {
       // TIEMPO AGOTADO
       setTimerActive(false);
       handleRespuesta(-1); // -1 indica que no se seleccionó nada (incorrecta)
@@ -223,9 +224,9 @@ export default function GameContainer({ onAdmin }) {
     return () => clearInterval(interval);
   }, [timerActive, timeLeft, pantalla, feedback.visible]);
 
-  // ── Alerta sonora de tiempo crítico ──
+  // ── Alerta sonora de tiempo crítico (Solo Clásico) ──
   useEffect(() => {
-    if (timerActive && timeLeft <= 5 && timeLeft > 0 && pantalla === 'juego' && !feedback.visible) {
+    if (timerActive && timeLeft <= 5 && timeLeft > 0 && pantalla === 'juego_clasico' && !feedback.visible) {
       playTick();
     }
   }, [timeLeft, timerActive, pantalla, feedback.visible, playTick]);
@@ -265,39 +266,43 @@ export default function GameContainer({ onAdmin }) {
     setFeedback({ visible: true, esCorrecta: esCorrecta === true, mensaje, dato });
   };
 
-  // ── Avanzar a la siguiente pregunta ──
+  // ── Finalizar partida (Común para ambos modos) ──
+  const finalizarPartida = async (correctasFinales, totalPreguntas) => {
+    setCorrectas(correctasFinales);
+    const segundosTotales = Math.round((Date.now() - timestampInicio) / 1000);
+    
+    if (supabase) {
+      console.log('Intentando guardar participacion...', { nombre, correctas: correctasFinales, segundosTotales });
+      const { error } = await supabase.from('participaciones').insert([{
+        nombre: nombre || 'Anónimo',
+        puntaje: correctasFinales,
+        total: totalPreguntas,
+        tiempo_total: segundosTotales
+      }]);
+      
+      if (error) {
+        console.error('Error CRÍTICO de Supabase:', error.message);
+        if (error.message.includes('tiempo_total')) {
+            await supabase.from('participaciones').insert([{
+            nombre: nombre || 'Anónimo',
+            puntaje: correctasFinales,
+            total: totalPreguntas
+          }]);
+        }
+      } else {
+        console.log('✅ Partida guardada con éxito');
+      }
+    }
+    setPantalla('final');
+  };
+
+  // ── Avanzar a la siguiente pregunta (Solo Clásico) ──
   const handleContinuar = async () => {
     setFeedback(f => ({ ...f, visible: false }));
     setTimeout(async () => {
       const siguiente = indicePregunta + 1;
       if (siguiente >= qList.length) {
-        // Cálculo final de tiempo real en segundos
-        const segundosTotales = Math.round((Date.now() - timestampInicio) / 1000);
-        
-        if (supabase) {
-          console.log('Intentando guardar participacion...', { nombre, correctas, segundosTotales });
-          const { error } = await supabase.from('participaciones').insert([{
-            nombre: nombre || 'Anónimo',
-            puntaje: correctas,
-            total: qList.length,
-            tiempo_total: segundosTotales
-          }]);
-          
-          if (error) {
-            console.error('Error CRÍTICO de Supabase:', error.message);
-            // Si falla por la columna, intentamos guardar sin tiempo para no perder el dato
-            if (error.message.includes('tiempo_total')) {
-               await supabase.from('participaciones').insert([{
-                nombre: nombre || 'Anónimo',
-                puntaje: correctas,
-                total: qList.length
-              }]);
-            }
-          } else {
-            console.log('✅ Partida guardada con éxito');
-          }
-        }
-        setPantalla('final');
+        finalizarPartida(correctas, qList.length);
       } else {
         setIndicePregunta(siguiente);
         setColorIndex(prev => prev + 1); // Rotar color de fondo
@@ -352,9 +357,9 @@ export default function GameContainer({ onAdmin }) {
       {/* ── Confeti ── */}
       <ConfettiEffect activo={confeti} />
 
-      {/* ── Alerta de tiempo crítico (Borde rojo) ── */}
+      {/* ── Alerta de tiempo crítico (Borde rojo - Solo Clásico) ── */}
       <AnimatePresence>
-        {timeLeft <= 3 && pantalla === 'juego' && !feedback.visible && (
+        {timeLeft <= 3 && pantalla === 'juego_clasico' && !feedback.visible && (
           <motion.div 
             className="fixed inset-0 pointer-events-none border-[12px] border-red-500/40 z-[99]"
             initial={{ opacity: 0 }}
@@ -476,48 +481,84 @@ export default function GameContainer({ onAdmin }) {
                 />
               </motion.div>
 
-              {/* Botón INICIAR */}
-              <motion.button
-                onClick={() => {
-                  if (!nombre.trim()) {
-                    alert('¡Por favor, ingresá tu nombre para recibir tu diploma!');
-                    return;
-                  }
-                  setPantalla('juego');
-                  setTimestampInicio(Date.now()); // Marcamos el inicio real
-                  setColorIndex(0);
-                  setTimeLeft(15); // Iniciamos con 15
-                  setTimerActive(true);
-                }}
-                style={{
-                  background: '#FFD700',
-                  color: '#1A3A6B',
-                  padding: '16px 40px',
-                  borderRadius: '50px',
-                  fontSize: '22px',
-                  fontWeight: 900,
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 6px 24px rgba(0,0,0,0.25), 0 0 0 4px rgba(255,255,255,0.3)',
-                  fontFamily: 'Nunito, sans-serif',
-                }}
+              {/* Botones de INICIAR */}
+              <motion.div
+                className="flex flex-col gap-4 w-full max-w-xs"
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.7, type: 'spring', stiffness: 300 }}
-                whileHover={{ scale: 1.08, boxShadow: '0 10px 36px rgba(0,0,0,0.3)' }}
-                whileTap={{ scale: 0.96 }}
               >
-                🚀 ¡Iniciar Misión!
-              </motion.button>
+                <motion.button
+                  onClick={() => {
+                    if (!nombre.trim()) {
+                      alert('¡Por favor, ingresá tu nombre para recibir tu diploma!');
+                      return;
+                    }
+                    setPantalla('juego_clasico');
+                    setTimestampInicio(Date.now());
+                    setColorIndex(0);
+                    setTimeLeft(15);
+                    setTimerActive(true);
+                  }}
+                  style={{
+                    background: '#FFD700',
+                    color: '#1A3A6B',
+                    padding: '0 20px',
+                    height: '64px',
+                    borderRadius: '50px',
+                    fontSize: '18px',
+                    fontWeight: 900,
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 6px 24px rgba(0,0,0,0.25), 0 0 0 4px rgba(255,255,255,0.3)',
+                    fontFamily: 'Nunito, sans-serif',
+                    width: '100%',
+                    whiteSpace: 'nowrap',
+                  }}
+                  whileHover={{ scale: 1.05, boxShadow: '0 10px 36px rgba(0,0,0,0.3)' }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  🚀 Modo Clásico
+                </motion.button>
+                
+                <motion.button
+                  onClick={() => {
+                    if (!nombre.trim()) {
+                      alert('¡Por favor, ingresá tu nombre para recibir tu diploma!');
+                      return;
+                    }
+                    setPantalla('juego_ruleta');
+                    setTimestampInicio(Date.now());
+                  }}
+                  style={{
+                    background: '#E5007D',
+                    color: '#FFFFFF',
+                    padding: '0 20px',
+                    height: '64px',
+                    borderRadius: '50px',
+                    fontSize: '18px',
+                    fontWeight: 900,
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 6px 24px rgba(0,0,0,0.25), 0 0 0 4px rgba(255,255,255,0.3)',
+                    fontFamily: 'Nunito, sans-serif',
+                    width: '100%',
+                    whiteSpace: 'nowrap',
+                  }}
+                  whileHover={{ scale: 1.05, boxShadow: '0 10px 36px rgba(0,0,0,0.3)' }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  🎡 ¡Modo Ruleta Mágica!</motion.button>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* ══════════════════════════════
-            PANTALLA DE JUEGO
+            PANTALLA DE JUEGO (CLÁSICO)
         ══════════════════════════════ */}
         <AnimatePresence>
-          {pantalla === 'juego' && (
+          {pantalla === 'juego_clasico' && (
             <motion.div
               className="fixed inset-0 flex"
               style={{ zIndex: 10, paddingBottom: '64px' }}
@@ -526,8 +567,31 @@ export default function GameContainer({ onAdmin }) {
               exit={{ opacity: 0, x: -100 }}
               transition={{ type: 'spring', stiffness: 260, damping: 28 }}
             >
-              {/* Panel izquierdo: personaje + mini stats (solo md+) */}
-              <div className="hidden md:flex flex-col items-center justify-center w-52 flex-shrink-0 p-4 gap-4">
+              {/* Panel izquierdo: personaje + reloj grande + mini stats (solo md+) */}
+              <div className="hidden md:flex flex-col items-center justify-center w-52 flex-shrink-0 p-4 gap-3">
+
+                {/* ── Reloj grande sobre la gota ── */}
+                <motion.div
+                  className={`flex flex-col items-center justify-center rounded-3xl px-4 py-3 w-full shadow-2xl border-4 ${
+                    timeLeft <= 3
+                      ? 'bg-red-600 border-red-300 shadow-red-500/60'
+                      : timeLeft <= 7
+                        ? 'bg-yellow-400 border-yellow-200 shadow-yellow-400/40'
+                        : 'bg-white/20 border-white/40'
+                  }`}
+                  animate={timeLeft <= 3 ? { scale: [1, 1.08, 1], rotate: [-2, 2, -1, 0] } : { scale: 1 }}
+                  transition={{ repeat: Infinity, duration: 0.45 }}
+                >
+                  <span style={{ fontSize: '2.8rem', lineHeight: 1 }}>⏱️</span>
+                  <span
+                    className="font-black text-white drop-shadow-md"
+                    style={{ fontSize: '3.5rem', lineHeight: 1, fontFamily: 'Nunito, sans-serif' }}
+                  >
+                    {timeLeft}
+                  </span>
+                  <span className="text-white/80 text-xs font-bold mt-1">segundos</span>
+                </motion.div>
+
                 <FloatingCharacter size="md" happy={true} />
 
                 <div className="glass-card p-3 text-center w-full">
@@ -558,24 +622,9 @@ export default function GameContainer({ onAdmin }) {
                   </div>
 
                   <div className="flex items-center justify-between mt-1 mb-2">
-                    <div className="flex items-center gap-3">
-                      <span className="text-white font-black text-sm md:text-base">
-                        📍 Tu Progreso
-                      </span>
-                      {/* RELOJ VISUAL PREMIUM */}
-                      <motion.div 
-                        className={`flex items-center gap-1 px-4 py-1.5 rounded-2xl font-black text-lg shadow-lg ${
-                          timeLeft <= 3 ? 'bg-red-600 text-white shadow-red-500/50' : 'bg-white/90 text-epas-sky'
-                        }`}
-                        animate={timeLeft <= 3 ? { 
-                          scale: [1, 1.2, 1],
-                          rotate: [-2, 2, -2, 0]
-                        } : {}}
-                        transition={{ repeat: Infinity, duration: 0.4 }}
-                      >
-                        ⏱️ {timeLeft}
-                      </motion.div>
-                    </div>
+                    <span className="text-white font-black text-sm md:text-base">
+                      📍 Tu Progreso
+                    </span>
                     {/* Badge de Puntos */}
                     <div className="bg-yellow-400 text-slate-900 px-3 py-1 rounded-xl font-black text-xs shadow-lg">
                       ✨ {correctas} GOTAS
@@ -596,6 +645,16 @@ export default function GameContainer({ onAdmin }) {
                 </div>
               </div>
             </motion.div>
+          )}
+
+          {/* ══════════════════════════════
+              PANTALLA DE JUEGO (RULETA)
+          ══════════════════════════════ */}
+          {pantalla === 'juego_ruleta' && (
+            <RouletteGameMode 
+              preguntas={qList}
+              onGameEnd={finalizarPartida}
+            />
           )}
         </AnimatePresence>
 
