@@ -67,8 +67,10 @@ function InstitutionalFooter({ onAdmin }) {
   return (
     <div
       style={{
-        background: '#ffffff',
-        borderTop: '2px solid #e0e0e0',
+        background: 'rgba(255, 255, 255, 0.72)', // Vidrio translúcido premium
+        backdropFilter: 'blur(16px) saturate(120%)', // Desenfoque potente y saturación del fondo
+        borderTop: '2px solid rgba(255, 255, 255, 0.5)', // Borde superior blanco brillante
+        boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.06)', // Sombra suave hacia arriba
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -76,65 +78,65 @@ function InstitutionalFooter({ onAdmin }) {
         padding: '8px 24px',
         flexShrink: 0,
         height: '64px',
+        transition: 'background 0.5s ease', // Transición suave al cambiar de fondo
       }}
     >
       {/* Badge EPAS va a la Escuela */}
       <div
         style={{
-          background: '#1A3A6B',
-          borderRadius: '6px',
-          padding: '4px 10px',
+          background: 'linear-gradient(135deg, #1A3A6B 0%, #0D203F 100%)', // Gradiente azul profundo
+          borderRadius: '10px',
+          padding: '5px 12px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
           lineHeight: 1.1,
+          boxShadow: '0 4px 12px rgba(26, 58, 107, 0.25)',
         }}
       >
-        <span style={{ color: '#ffffff', fontSize: '8px', fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+        <span style={{ color: '#ffffff', fontSize: '8px', fontWeight: 800, letterSpacing: '0.6px', textTransform: 'uppercase' }}>
           EPAS <span style={{ color: '#29ABE2' }}>va a la</span>
         </span>
-        <span style={{ color: '#FFD700', fontSize: '14px', fontWeight: 900, letterSpacing: '1px' }}>
+        <span style={{ color: '#FFD700', fontSize: '13px', fontWeight: 900, letterSpacing: '1px' }}>
           ESCUELA
         </span>
       </div>
 
       {/* Separador */}
-      <div style={{ width: '1px', height: '32px', background: '#e0e0e0' }} />
+      <div style={{ width: '1.5px', height: '28px', background: 'rgba(26, 58, 107, 0.15)' }} />
 
       {/* Logo EPAS institucional */}
-      <img src={logoEpas} alt="Logo EPAS" style={{ height: '38px', objectFit: 'contain' }} />
+      <img src={logoEpas} alt="Logo EPAS" style={{ height: '36px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.05))' }} />
 
       {/* Separador */}
-      <div style={{ width: '1px', height: '32px', background: '#e0e0e0' }} />
-
-      {/* Provincia del Neuquén (Ya incluido en el logo del gobierno usualmente, pero lo dejamos si el logo es solo escudo) */}
-      {/* En este caso el logoNeuquen ya tiene el texto, así que omitimos el texto manual */}
-
+      <div style={{ width: '1.5px', height: '28px', background: 'rgba(26, 58, 107, 0.15)' }} />
 
       {/* Gobierno de la Provincia */}
-      <img src={logoNeuquen} alt="Gobierno de Neuquén" style={{ height: '48px', objectFit: 'contain' }} />
+      <img src={logoNeuquen} alt="Gobierno de Neuquén" style={{ height: '44px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.05))' }} />
 
-        {/* Botón admin (icono discreto) */}
-        <div style={{ width: '1px', height: '32px', background: '#e0e0e0' }} />
-        <button
-          onClick={onAdmin}
-          title="Panel de Administración"
-          style={{
-            background: 'rgba(0,0,0,0.04)',
-            border: '1px solid #e0e0e0',
-            borderRadius: '8px',
-            padding: '6px 10px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            transition: 'all 0.2s',
-            display: 'flex', alignItems: 'center', gap: '4px',
-          }}
-          onMouseEnter={e => e.target.style.background = 'rgba(0,0,0,0.1)'}
-          onMouseLeave={e => e.target.style.background = 'rgba(0,0,0,0.04)'}
-        >
-          ⚙️
-        </button>
-      </div>
+      {/* Botón admin (icono discreto) */}
+      <div style={{ width: '1.5px', height: '28px', background: 'rgba(26, 58, 107, 0.15)' }} />
+      <button
+        onClick={onAdmin}
+        title="Panel de Administración"
+        style={{
+          background: 'rgba(26, 58, 107, 0.08)',
+          border: '1px solid rgba(26, 58, 107, 0.15)',
+          borderRadius: '10px',
+          padding: '6px 12px',
+          cursor: 'pointer',
+          fontSize: '16px',
+          transition: 'all 0.2s ease',
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '4px',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(26, 58, 107, 0.15)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'rgba(26, 58, 107, 0.08)'}
+      >
+        ⚙️
+      </button>
+    </div>
   );
 }
 
