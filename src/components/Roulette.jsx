@@ -114,10 +114,18 @@ export default function Roulette({ onSpinEnd, onSpinStart, spinning }) {
       const x2 = 100 + 100 * Math.cos((Math.PI * endAngle) / 180);
       const y2 = 100 + 100 * Math.sin((Math.PI * endAngle) / 180);
 
-      // Posición del icono en el medio de la rebanada (radio 65 para que quede adentro)
+      // Posición en el medio de la rebanada
       const midAngle = startAngle + sliceAngle / 2;
-      const iconX = 100 + 65 * Math.cos((Math.PI * midAngle) / 180);
-      const iconY = 100 + 65 * Math.sin((Math.PI * midAngle) / 180);
+      
+      // Icono más hacia el centro
+      const iconRadius = 55;
+      const iconX = 100 + iconRadius * Math.cos((Math.PI * midAngle) / 180);
+      const iconY = 100 + iconRadius * Math.sin((Math.PI * midAngle) / 180);
+
+      // Texto hacia el borde
+      const textRadius = 82;
+      const textX = 100 + textRadius * Math.cos((Math.PI * midAngle) / 180);
+      const textY = 100 + textRadius * Math.sin((Math.PI * midAngle) / 180);
 
       const pathData = `M 100 100 L ${x1} ${y1} A 100 100 0 0 1 ${x2} ${y2} Z`;
 
@@ -127,12 +135,25 @@ export default function Roulette({ onSpinEnd, onSpinStart, spinning }) {
           <text 
             x={iconX} 
             y={iconY} 
-            fontSize="30" 
+            fontSize="26" 
             textAnchor="middle" 
             dominantBaseline="middle"
             transform={`rotate(${midAngle + 90}, ${iconX}, ${iconY})`}
           >
             {theme.icon}
+          </text>
+          <text 
+            x={textX} 
+            y={textY} 
+            fontSize="7.5" 
+            fontWeight="900"
+            fill="white"
+            textAnchor="middle" 
+            dominantBaseline="middle"
+            transform={`rotate(${midAngle + 90}, ${textX}, ${textY})`}
+            style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.4)' }}
+          >
+            {theme.name}
           </text>
         </g>
       );
@@ -140,18 +161,22 @@ export default function Roulette({ onSpinEnd, onSpinStart, spinning }) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center relative w-full max-w-lg mx-auto p-4">
-      
-      {/* Indicador superior (Flecha) */}
-      <div className="absolute top-0 z-10 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-white drop-shadow-md" style={{ transform: 'translateY(-10px)' }}></div>
+    <div className="flex flex-col items-center justify-center relative w-full max-w-lg mx-auto p-2">
       
       {/* Ruleta */}
       <div 
         ref={containerRef}
-        className="relative w-96 h-96 rounded-full shadow-2xl border-4 border-white/80 bg-white/10 backdrop-blur-sm p-1"
+        className="relative w-[85vw] max-w-[340px] aspect-square rounded-full shadow-2xl border-4 border-white/80 bg-white/10 backdrop-blur-sm p-1 mt-4"
         style={{ cursor: spinning ? 'default' : 'pointer' }}
         onClick={handleSpinClick}
       >
+        {/* Indicador superior (Flecha) - Posicionado relativo a la ruleta */}
+        <div 
+          className="absolute top-0 left-1/2 z-20 w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-white drop-shadow-md" 
+          style={{ transform: 'translate(-50%, -50%)' }}
+        ></div>
+
+
         <motion.div
           className="w-full h-full rounded-full overflow-hidden"
           animate={{ rotate: rotation }}
