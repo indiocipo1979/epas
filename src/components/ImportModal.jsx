@@ -96,11 +96,21 @@ export default function ImportModal({ onImport, onClose }) {
                 detected.push(currentQ);
               }
 
+              const TEMAS_DISPONIBLES = [
+                { name: 'Ríos y Geografía', emoji: '🏞️' },
+                { name: 'Cuidado en Casa', emoji: '🏠' },
+                { name: 'EPAS y Neuquén', emoji: '🏢' },
+                { name: 'Salud y Cuerpo', emoji: '🧠' },
+                { name: 'Curiosidades', emoji: '💧' }
+              ];
+              const randomTema = TEMAS_DISPONIBLES[Math.floor(Math.random() * TEMAS_DISPONIBLES.length)];
+
               currentQ = {
                 pregunta: questionText,
                 opciones: opciones,
                 correcta: correctaIndex,
-                emoji: '💧',
+                tema: randomTema.name,
+                emoji: randomTema.emoji,
                 dato: ''
               };
             }
@@ -119,11 +129,22 @@ export default function ImportModal({ onImport, onClose }) {
               if (currentQ && currentQ.opciones.length >= 2) {
                 detected.push(currentQ);
               }
+              
+              const TEMAS_DISPONIBLES = [
+                { name: 'Ríos y Geografía', emoji: '🏞️' },
+                { name: 'Cuidado en Casa', emoji: '🏠' },
+                { name: 'EPAS y Neuquén', emoji: '🏢' },
+                { name: 'Salud y Cuerpo', emoji: '🧠' },
+                { name: 'Curiosidades', emoji: '💧' }
+              ];
+              const randomTema = TEMAS_DISPONIBLES[Math.floor(Math.random() * TEMAS_DISPONIBLES.length)];
+
               currentQ = {
                 pregunta: text.replace(/^\d+[\.\)]\s*/, '').trim(),
                 opciones: [],
                 correcta: 0,
-                emoji: '💧',
+                tema: randomTema.name,
+                emoji: randomTema.emoji,
                 dato: ''
               };
             } else if (currentQ) {

@@ -19,7 +19,7 @@ import ImportModal from './ImportModal';
 const EMOJIS = ['🌊', '🚰', '🏔️', '🌵', '💧', '🏢', '🌱', '🔧', '🚿', '🤝', '🐟', '⭐', '🌍', '🧪', '🏠', '❄️', '☀️', '🌧️', '🏞️', '🐠'];
 
 // ── Template pregunta ──
-const PREGUNTA_VACIA = { emoji: '💧', pregunta: '', opciones: ['', '', '', ''], correcta: 0, dato: '' };
+const PREGUNTA_VACIA = { emoji: '💧', tema: 'Curiosidades', pregunta: '', opciones: ['', '', '', ''], correcta: 0, dato: '' };
 
 export default function AdminPanel({ onVolver }) {
   const [view, setView] = useState('preguntas'); // 'preguntas' | 'stats'
@@ -303,6 +303,35 @@ export default function AdminPanel({ onVolver }) {
 
               {/* Form */}
               <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-white/40 mb-2 block">Categoría (Tema de la Ruleta)</label>
+                  <select 
+                    value={form.tema || 'Curiosidades'} 
+                    onChange={e => {
+                      const selectedTema = e.target.value;
+                      const defaultEmojis = {
+                        'Ríos y Geografía': '🏞️',
+                        'Cuidado en Casa': '🏠',
+                        'EPAS y Neuquén': '🏢',
+                        'Salud y Cuerpo': '🧠',
+                        'Curiosidades': '💧'
+                      };
+                      setForm(f => ({ 
+                        ...f, 
+                        tema: selectedTema,
+                        emoji: (!f.emoji || f.emoji === '💧') ? (defaultEmojis[selectedTema] || '💧') : f.emoji 
+                      }));
+                    }}
+                    className="w-full bg-slate-700/50 border border-white/10 rounded-xl p-3 text-sm focus:border-cyan-500 outline-none text-white font-bold cursor-pointer"
+                  >
+                    <option value="Ríos y Geografía">🏞️ Ríos y Geografía</option>
+                    <option value="Cuidado en Casa">🏠 Cuidado en Casa</option>
+                    <option value="EPAS y Neuquén">🏢 EPAS y Neuquén</option>
+                    <option value="Salud y Cuerpo">🧠 Salud y Cuerpo</option>
+                    <option value="Curiosidades">💧 Curiosidades</option>
+                  </select>
+                </div>
+
                 <div>
                   <label className="text-[10px] font-black uppercase text-white/40 mb-2 block">Pregunta</label>
                   <textarea value={form.pregunta} onChange={e => setForm(f => ({ ...f, pregunta: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-cyan-500 outline-none h-24" placeholder="¿Cuál es el río...?" />

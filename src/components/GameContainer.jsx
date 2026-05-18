@@ -174,14 +174,49 @@ export default function GameContainer({ onAdmin }) {
         let data = await getPreguntas();
         if (!data || data.length === 0) data = [...PREGUNTAS_DEFAULT];
 
+        // RETROCOMPATIBILIDAD: Si alguna pregunta no tiene tema, le asignamos uno aleatorio
+        const TEMAS_COMPAT = [
+          { name: 'Ríos y Geografía', emoji: '🏞️' },
+          { name: 'Cuidado en Casa', emoji: '🏠' },
+          { name: 'EPAS y Neuquén', emoji: '🏢' },
+          { name: 'Salud y Cuerpo', emoji: '🧠' },
+          { name: 'Curiosidades', emoji: '💧' }
+        ];
+
+        const normalizadas = data.map(p => {
+          if (!p.tema) {
+            const randomTema = TEMAS_COMPAT[Math.floor(Math.random() * TEMAS_COMPAT.length)];
+            return {
+              ...p,
+              tema: randomTema.name,
+              emoji: p.emoji && p.emoji !== '💧' ? p.emoji : randomTema.emoji
+            };
+          }
+          return p;
+        });
+
         // MEZCLA ALEATORIA (Fisher-Yates Shuffle)
-        const mezcladas = [...data].sort(() => Math.random() - 0.5);
+        const mezcladas = [...normalizadas].sort(() => Math.random() - 0.5);
         
         // SELECCIONAR SOLO 10
         setPreguntas(mezcladas.slice(0, 10));
       } catch (e) {
         console.error("Fallo carga:", e);
-        const mezcladas = [...PREGUNTAS_DEFAULT].sort(() => Math.random() - 0.5);
+        const TEMAS_COMPAT = [
+          { name: 'Ríos y Geografía', emoji: '🏞️' },
+          { name: 'Cuidado en Casa', emoji: '🏠' },
+          { name: 'EPAS y Neuquén', emoji: '🏢' },
+          { name: 'Salud y Cuerpo', emoji: '🧠' },
+          { name: 'Curiosidades', emoji: '💧' }
+        ];
+        const normalizadas = PREGUNTAS_DEFAULT.map(p => {
+          if (!p.tema) {
+            const randomTema = TEMAS_COMPAT[Math.floor(Math.random() * TEMAS_COMPAT.length)];
+            return { ...p, tema: randomTema.name, emoji: randomTema.emoji };
+          }
+          return p;
+        });
+        const mezcladas = [...normalizadas].sort(() => Math.random() - 0.5);
         setPreguntas(mezcladas.slice(0, 10));
       } finally {
         setLoading(false);
