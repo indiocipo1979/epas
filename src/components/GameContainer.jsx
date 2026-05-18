@@ -625,9 +625,26 @@ export default function GameContainer({ onAdmin }) {
                     <span className="text-white font-black text-sm md:text-base">
                       📍 Tu Progreso
                     </span>
-                    {/* Badge de Puntos */}
-                    <div className="bg-yellow-400 text-slate-900 px-3 py-1 rounded-xl font-black text-xs shadow-lg">
-                      ✨ {correctas} GOTAS
+                    <div className="flex items-center gap-2">
+                      {/* Segundero en móviles */}
+                      <motion.div
+                        className={`md:hidden flex items-center gap-1 text-white px-3 py-1 rounded-xl font-black text-xs shadow-lg border ${
+                          timeLeft <= 3
+                            ? 'bg-red-600 border-red-300'
+                            : timeLeft <= 7
+                              ? 'bg-yellow-500 border-yellow-200'
+                              : 'bg-white/20 border-white/40'
+                        }`}
+                        animate={timeLeft <= 3 ? { scale: [1, 1.1, 1] } : {}}
+                        transition={{ repeat: timeLeft <= 3 ? Infinity : 0, duration: 0.5 }}
+                      >
+                        <span>⏱️</span>
+                        <span>{timeLeft}s</span>
+                      </motion.div>
+                      {/* Badge de Puntos */}
+                      <div className="bg-yellow-400 text-slate-900 px-3 py-1 rounded-xl font-black text-xs shadow-lg">
+                        ✨ {correctas} GOTAS
+                      </div>
                     </div>
                   </div>
                   <EnergyBar current={indicePregunta + 1} total={qList.length} />
