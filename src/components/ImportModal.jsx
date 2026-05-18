@@ -43,40 +43,97 @@ export default function ImportModal({ onImport, onClose }) {
           const text = p.innerText.trim();
           if (!text || text.length < 2) return;
 
-          // Patrones comunes
-          const startsWithOption = /^[a-zA-Z][\)\.\-]/.test(text) || text.startsWith('•');
-          const isQuestion = text.includes('?') || /^\d+[\.\)]/.test(text);
+          // Extraer negritas
+          const strongs = Array.from(p.querySelectorAll('strong, b')).map(el => el.innerText.trim());
 
-          // LÓGICA DE DETECCIÓN
-          if (startsWithOption && currentQ) {
-            // Es una OPCIÓN
+          // Detectar si es el "Dato educativo"
+          const isDato = text.toLowerCase().startsWith('dato educativo');
+
+          if (isDato && currentQ) {
+            currentQ.dato = text.replace(/^dato\s+educativo:\s*/i, '').trim();
+            return;
+          }
+
+          // Detectar si tiene las opciones en la misma línea (formato horizontal)
+          const hasHorizontalOptions = (text.match(/\b[A-Da-d][\)\.\-]\s+/g) || []).length >= 2;
+
+          if (hasHorizontalOptions) {
+            const firstOptionMatch = text.match(/\b[A-Da-d][\)\.\-]\s+/);
+            if (firstOptionMatch) {
+              const firstOptionIndex = firstOptionMatch.index;
+              let questionText = text.substring(0, firstOptionIndex).trim();
+              
+              // Limpiar número de pregunta al inicio (ej. "1. ")
+              questionText = questionText.replace(/^\d+[\.\)]\s*/, '').trim();
+
+              const optionsPart = text.substring(firstOptionIndex).trim();
+
+              // Parsear las opciones individuales
+              const optRegex = /\b([A-Da-d])[\)\.\-]\s*(.*?)(?=\b[A-Da-d][\)\.\-]\s+|$)/gi;
+              const opciones = [];
+              let correctaIndex = 0;
+              let oMatch;
+
+              while ((oMatch = optRegex.exec(optionsPart)) !== null) {
+                const key = oMatch[1].toUpperCase();
+                const optionText = oMatch[2].trim();
+                opciones.push(optionText);
+
+                // Comprobar si esta opción está en negrita
+                const optionClean = (key + optionText).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                
+                const isBold = strongs.some(strongText => {
+                  const strongClean = strongText.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+                  return strongClean === optionClean || strongClean.includes(optionClean) || optionClean.includes(strongClean);
+                });
+
+                if (isBold) {
+                  correctaIndex = opciones.length - 1;
+                }
+              }
+
+              if (currentQ && currentQ.opciones.length >= 2) {
+                detected.push(currentQ);
+              }
+
+              currentQ = {
+                pregunta: questionText,
+                opciones: opciones,
+                correcta: correctaIndex,
+                emoji: '💧',
+                dato: ''
+              };
+            }
+          } else {
+            // Formato tradicional (opciones en párrafos separados)
+            const startsWithOption = /^[a-zA-Z][\)\.\-]/.test(text) || text.startsWith('•');
+            const isQuestion = text.includes('?') || /^\d+[\.\)]/.test(text);
             const isBold = p.querySelector('strong') || p.querySelector('b');
-            currentQ.opciones.push(text);
-            if (isBold) {
-              currentQ.correcta = currentQ.opciones.length - 1;
-            }
-          } else if (isQuestion || text.length > 40) {
-            // Es una PREGUNTA o TÍTULO
-            if (currentQ && currentQ.opciones.length >= 2) {
-              detected.push(currentQ);
-            }
-            currentQ = {
-              pregunta: text,
-              opciones: [],
-              correcta: 0,
-              emoji: '💧',
-              dato: '' // Lo llenaremos después
-            };
-          } else if (currentQ) {
-            // Si ya tenemos opciones y llega un texto "suelto", es el DATO EDUCATIVO
-            if (currentQ.opciones.length >= 2 && !currentQ.dato) {
-              currentQ.dato = text;
-            } else if (currentQ.opciones.length < 4) {
-              // Si aún no tenemos suficientes opciones, lo tomamos como opción
-              const isBold = p.querySelector('strong') || p.querySelector('b');
+
+            if (startsWithOption && currentQ) {
               currentQ.opciones.push(text);
               if (isBold) {
                 currentQ.correcta = currentQ.opciones.length - 1;
+              }
+            } else if (isQuestion || text.length > 40) {
+              if (currentQ && currentQ.opciones.length >= 2) {
+                detected.push(currentQ);
+              }
+              currentQ = {
+                pregunta: text.replace(/^\d+[\.\)]\s*/, '').trim(),
+                opciones: [],
+                correcta: 0,
+                emoji: '💧',
+                dato: ''
+              };
+            } else if (currentQ) {
+              if (currentQ.opciones.length >= 2 && !currentQ.dato) {
+                currentQ.dato = text;
+              } else if (currentQ.opciones.length < 4) {
+                currentQ.opciones.push(text);
+                if (isBold) {
+                  currentQ.correcta = currentQ.opciones.length - 1;
+                }
               }
             }
           }
