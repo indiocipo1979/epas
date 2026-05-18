@@ -11,6 +11,7 @@ import {
   reorderPregunta,
   resetPreguntas,
   getEstadisticas,
+  deleteParticipacion,
 } from '../utils/questionStorage';
 import { PREGUNTAS as PREGUNTAS_DEFAULT } from '../data/questions';
 import ImportModal from './ImportModal';
@@ -29,6 +30,7 @@ export default function AdminPanel({ onVolver }) {
   const [editando, setEditando] = useState(null);
   const [form, setForm] = useState({ ...PREGUNTA_VACIA });
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmDeleteParticipacion, setConfirmDeleteParticipacion] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [toast, setToast] = useState(null);
@@ -109,6 +111,24 @@ export default function AdminPanel({ onVolver }) {
     setConfirmReset(false);
     setLoading(false);
     showToast('🔄 Restauradas');
+  };
+
+  const handleEliminarParticipacion = async (id) => {
+    setLoading(true);
+    try {
+      const ok = await deleteParticipacion(id);
+      if (ok) {
+        showToast('🗑️ Participación eliminada');
+        await fetchData();
+      } else {
+        showToast('❌ Error al eliminar participación', 'error');
+      }
+    } catch (e) {
+      showToast('❌ Error al eliminar participación', 'error');
+    } finally {
+      setConfirmDeleteParticipacion(null);
+      setLoading(false);
+    }
   };
 
   const LETTERS = ['A', 'B', 'C', 'D'];
@@ -228,8 +248,15 @@ export default function AdminPanel({ onVolver }) {
                         <p className="font-bold truncate text-sm">{r.nombre}</p>
                         <p className="text-[10px] text-white/40 font-bold uppercase">{r.tiempo_total || 0} segundos</p>
                       </div>
-                      <div className="text-cyan-400 font-black text-sm">
-                        {r.puntaje}/{r.total}
+                      <div className="text-cyan-400 font-black text-sm flex items-center gap-2">
+                        <span>{r.puntaje}/{r.total}</span>
+                        <button 
+                          onClick={() => setConfirmDeleteParticipacion(r)} 
+                          title="Eliminar participación"
+                          className="text-red-400/50 hover:text-red-400 hover:bg-red-500/10 p-1 rounded transition-all text-xs"
+                        >
+                          🗑️
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -252,6 +279,7 @@ export default function AdminPanel({ onVolver }) {
                         <th className="p-4">Puntos</th>
                         <th className="p-4">Tiempo</th>
                         <th className="p-4">Fecha</th>
+                        <th className="p-4 text-center">Acción</th>
                       </tr>
                     </thead>
                     <tbody className="text-xs">
@@ -266,6 +294,15 @@ export default function AdminPanel({ onVolver }) {
                           <td className="p-4 text-white/60">{r.tiempo_total || 0}s</td>
                           <td className="p-4 text-white/30 font-bold">
                             {new Date(r.fecha).toLocaleDateString()}
+                          </td>
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => setConfirmDeleteParticipacion(r)}
+                              title="Eliminar participación"
+                              className="text-red-400/50 hover:text-red-400 hover:bg-red-500/10 px-2 py-1 rounded-lg transition-all font-bold"
+                            >
+                              🗑️
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -367,7 +404,7 @@ export default function AdminPanel({ onVolver }) {
         </AnimatePresence>
       </div>
 
-      {/* MODAL ELIMINAR */}
+      {/* MODAL ELIMINAR PREGUNTA */}
       {confirmDelete && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
           <div className="bg-slate-800 p-8 rounded-3xl border border-white/10 max-w-xs w-full text-center shadow-2xl">
@@ -377,6 +414,33 @@ export default function AdminPanel({ onVolver }) {
             <div className="flex gap-3">
               <button onClick={() => handleEliminar(confirmDelete)} className="flex-1 bg-red-500 hover:bg-red-600 py-3 rounded-xl font-black transition-all">Eliminar</button>
               <button onClick={() => setConfirmDelete(null)} className="flex-1 bg-white/10 py-3 rounded-xl font-bold transition-all">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ELIMINAR PARTICIPANTE */}
+      {confirmDeleteParticipacion && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+          <div className="bg-slate-800 p-8 rounded-3xl border border-white/10 max-w-xs w-full text-center shadow-2xl">
+            <div className="text-5xl mb-4">🗑️</div>
+            <h3 className="text-xl font-black mb-2">¿Eliminar participante?</h3>
+            <p className="text-cyan-400 font-bold text-sm mb-1">"{confirmDeleteParticipacion.nombre}"</p>
+            <p className="text-white/40 text-[10px] font-bold uppercase tracking-wider mb-6">Puntaje: {confirmDeleteParticipacion.puntaje}/{confirmDeleteParticipacion.total}</p>
+            <p className="text-red-400 text-xs font-bold mb-6">Esta acción reajustará todas las estadísticas del panel.</p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => handleEliminarParticipacion(confirmDeleteParticipacion.id)} 
+                className="flex-1 bg-red-500 hover:bg-red-600 py-3 rounded-xl font-black transition-all"
+              >
+                Eliminar
+              </button>
+              <button 
+                onClick={() => setConfirmDeleteParticipacion(null)} 
+                className="flex-1 bg-white/10 py-3 rounded-xl font-bold transition-all"
+              >
+                Cancelar
+              </button>
             </div>
           </div>
         </div>

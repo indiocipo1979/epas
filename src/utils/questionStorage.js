@@ -137,7 +137,7 @@ export async function resetPreguntas() {
 }
 // ── Obtener estadísticas de participaciones ──
 export async function getEstadisticas() {
-  if (!supabase) return { total: 0, promedio: 0, recientes: [] };
+  if (!supabase) return { total: 0, promedio: 0, ranking: [], recientes: [] };
 
   try {
     const { data, error } = await supabase
@@ -172,6 +172,24 @@ export async function getEstadisticas() {
     };
   } catch (e) {
     console.error('Error al obtener estadísticas:', e);
-    return { total: 0, promedio: 0, recientes: [] };
+    return { total: 0, promedio: 0, ranking: [], recientes: [] };
+  }
+}
+
+// ── Eliminar participación (participante) ──
+export async function deleteParticipacion(id) {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from('participaciones')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.error('Error al eliminar participación:', e);
+    return false;
   }
 }
